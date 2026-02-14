@@ -1,0 +1,19 @@
+body {
+  background: #0a0a0a;
+  color: #e0e0e0;
+  font-family: monospace;
+}
+
+.terminal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.terminal-table th,
+.terminal-table td {
+  border-bottom: 1px solid #333;
+  padding: 6px;
+}
+
+.pos { color: #00ff90; }
+.neg { color: #ff4d4d; }

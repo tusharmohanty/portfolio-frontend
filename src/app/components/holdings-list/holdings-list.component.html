@@ -1,0 +1,26 @@
+<div class="panel">
+  <div class="panel-title">PORTFOLIO HOLDINGS</div>
+
+  <table class="terminal-table">
+    <thead>
+    <tr>
+      <th (click)="sort('symbol')">SYMBOL</th>
+      <th (click)="sort('investment')">INVESTMENT</th>
+      <th (click)="sort('current')">CURRENT VALUE</th>
+      <th (click)="sort('pl')">P/L %</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let h of sortedHoldings">
+      <td>{{h.symbol}}</td>
+      <td>{{portfolio.getInvestment(h) | number}}</td>
+      <td>{{portfolio.getCurrentValue(h) | number}}</td>
+      <td [class.pos]="portfolio.getPLPercent(h) >= 0"
+          [class.neg]="portfolio.getPLPercent(h) < 0">
+        {{portfolio.getPLPercent(h) | number:'1.2-2'}}%
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

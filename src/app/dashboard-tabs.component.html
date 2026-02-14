@@ -1,0 +1,7 @@
+<div class="tabs">
+  <button (click)="tab='holdings'">Holdings</button>
+  <button (click)="tab='watchlist'">Watchlist</button>
+</div>
+
+<app-holdings-list *ngIf="tab==='holdings'"></app-holdings-list>
+<app-watchlist *ngIf="tab==='watchlist'"></app-watchlist>

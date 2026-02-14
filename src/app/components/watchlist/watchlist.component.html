@@ -1,0 +1,21 @@
+<div class="panel">
+  <div class="panel-title">
+    <h2>Watchlist</h2>
+  </div>
+
+  <table class="terminal-table">
+    <thead>
+    <tr>
+      <th (click)="sort('symbol')">Stock</th>
+      <th (click)="sort('price')">Price</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let w of sortedWatchlist">
+      <td>{{ w.symbol }}</td>
+      <td>₹ {{ w.currentPrice | number }}</td>
+    </tr>
+    </tbody>
+  </table>
+</div>
