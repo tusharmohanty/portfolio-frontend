@@ -1,0 +1,13 @@
+[
+  { "symbol": "WINDLAS", "quantity": 350, "avgPrice": 770.39, "ltp":787.45 ,"holdingType":"CORE"  },
+  { "symbol": "LAURUSLABS", "quantity": 460, "avgPrice": 537.82,"ltp": 1012.45,"holdingType":"CORE" },
+  { "symbol": "JUBILINGREA", "quantity": 375, "avgPrice": 662.42,"ltp": 628.25,"holdingType":"CORE" },
+  { "symbol": "VIYASH", "quantity": 920, "avgPrice": 206.01,"ltp": 211.56,"holdingType":"CORE" },
+  { "symbol": "DEEPAKNTR", "quantity": 1, "avgPrice": 1739,"ltp": 1616.20,"holdingType":"WATCH" },
+  { "symbol": "NH", "quantity": 60, "avgPrice": 1729.53,"ltp": 1829.75,"holdingType":"CORE" },
+  { "symbol": "SOLARA", "quantity": 1, "avgPrice": 505.1,"ltp": 486.85,"holdingType":"CORE" },
+  { "symbol": "ADVENZYMES", "quantity": 300, "avgPrice": 293.22,"ltp": 296.95,"holdingType":"SWING"},
+  { "symbol": "FDC", "quantity": 300, "avgPrice": 406.01,"ltp": 374.15,"holdingType":"SWING"},
+  { "symbol": "JAGSNPHARM", "quantity": 590, "avgPrice": 204.29,"ltp": 173.49,"holdingType":"SWING"},
+  { "symbol": "PPLPHARMA", "quantity": 5, "avgPrice": 187.73,"ltp": 164.05,"holdingType":"WATCH"}
+]

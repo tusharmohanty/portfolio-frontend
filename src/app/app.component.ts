@@ -1,16 +1,11 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HoldingsListComponent } from './components/holdings-list/holdings-list.component';
-import { WatchlistComponent } from './components/watchlist/watchlist.component';
-import { DashboardTabsComponent } from './dashboard-tabs.component';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
   standalone: true,
-  imports: [
-      CommonModule,
-      DashboardTabsComponent
-    ],
+  imports: [RouterModule],   // ✅ brings in RouterOutlet + routerLink directives
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent {}

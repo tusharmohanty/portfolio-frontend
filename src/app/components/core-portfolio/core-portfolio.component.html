@@ -1,0 +1,195 @@
+<div class="page">
+    <div style="padding:12px">CORE PAGE</div>
+  <!-- Sticky Summary -->
+  <section class="summary" *ngIf="!loading && !error">
+    <div class="summary-top">
+      <div class="metric">
+        <div class="label">Current Value</div>
+        <div class="value">₹{{ totalCurrentValue | number: '1.0-0' }}</div>
+      </div>
+
+      <div class="metric right">
+        <div class="label">Total P/L</div>
+        <div class="value" [class.pos]="totalPl>0" [class.neg]="totalPl<0">
+          {{ formatSign(totalPl) }}₹{{ (totalPl<0 ? -totalPl : totalPl) | number:'1.0-0' }}
+        </div>
+        <div class="sub" [class.pos]="totalPlPct>0" [class.neg]="totalPlPct<0">
+          {{ formatSign(totalPlPct) }}{{ (totalPlPct<0 ? -totalPlPct : totalPlPct) | number:'1.2-2' }}%
+        </div>
+      </div>
+    </div>
+
+    <div class="summary-mid">
+      <div class="metric">
+        <div class="label">Invested</div>
+        <div class="sub">₹{{ totalInvestment | number: '1.0-0' }}</div>
+      </div>
+
+      <div class="segmented">
+        <button (click)="setPeriod('1D')" [class.active]="period==='1D'">1D</button>
+        <button (click)="setPeriod('1W')" [class.active]="period==='1W'">1W</button>
+        <button (click)="setPeriod('1M')" [class.active]="period==='1M'">1M</button>
+      </div>
+
+      <div class="metric right">
+        <div class="label">{{ getPeriodLabel() }} P/L</div>
+        <div class="sub" [class.pos]="overallPeriodPnl>0" [class.neg]="overallPeriodPnl<0">
+          {{ formatSign(overallPeriodPnl) }}₹{{ (overallPeriodPnl<0 ? -overallPeriodPnl : overallPeriodPnl) | number:'1.0-0' }}
+          •
+          {{ formatSign(overallPeriodPct) }}{{ (overallPeriodPct<0 ? -overallPeriodPct : overallPeriodPct) | number:'1.2-2' }}%
+        </div>
+      </div>
+    </div>
+
+    <!-- sort row -->
+    <div class="summary-actions">
+      <button class="chip" (click)="setSort('currentValue')">Sort: Value</button>
+      <button class="chip" (click)="setSort('pl')">Sort: P/L</button>
+      <button class="chip" (click)="setSort(period==='1D' ? 'dayPnl' : period==='1W' ? 'weekPnl' : 'monthPnl')">
+        Sort: {{ period }}
+      </button>
+      <button class="chip" (click)="setSort('driftPct')">Sort: Drift</button>
+    </div>
+  </section>
+
+  <div class="state" *ngIf="loading">Loading…</div>
+  <div class="state error" *ngIf="error">{{ error }}</div>
+
+  <!-- Desktop table -->
+  <section class="table" *ngIf="!loading && !error">
+    <div class="table-head">
+      <div (click)="setSort('symbol')">Symbol</div>
+      <div (click)="setSort('quantity')" class="num">Qty</div>
+      <div (click)="setSort('totalInvestment')" class="num">Invested</div>
+      <div (click)="setSort('currentValue')" class="num">Current</div>
+      <div (click)="setSort('pl')" class="num">P/L</div>
+      <div (click)="setSort('plLossPct')" class="num">P/L%</div>
+      <div class="num">{{ period }} P/L</div>
+      <div class="num">{{ period }} %</div>
+      <div (click)="setSort('invWtPct')" class="num">Inv Wt%</div>
+      <div (click)="setSort('valWtPct')" class="num">Val Wt%</div>
+      <div (click)="setSort('driftPct')" class="num">Drift</div>
+      <div></div>
+    </div>
+
+    <ng-container *ngFor="let p of positions">
+      <div class="table-row">
+        <div class="sym">{{ p.symbol }}</div>
+        <div class="num">{{ p.quantity }}</div>
+        <div class="num">₹{{ p.totalInvestment | number:'1.0-0' }}</div>
+        <div class="num">₹{{ p.currentValue | number:'1.0-0' }}</div>
+
+        <div class="num" [class.pos]="p.pl>0" [class.neg]="p.pl<0">
+          {{ formatSign(p.pl) }}₹{{ (p.pl<0 ? -p.pl : p.pl) | number:'1.0-0' }}
+        </div>
+
+        <div class="num" [class.pos]="p.plLossPct>0" [class.neg]="p.plLossPct<0">
+          {{ formatSign(p.plLossPct) }}{{ (p.plLossPct<0 ? -p.plLossPct : p.plLossPct) | number:'1.2-2' }}%
+        </div>
+
+        <div class="num" [class.pos]="getPeriodPnl(p)>0" [class.neg]="getPeriodPnl(p)<0">
+          {{ formatSign(getPeriodPnl(p)) }}₹{{ (getPeriodPnl(p)<0 ? -getPeriodPnl(p) : getPeriodPnl(p)) | number:'1.0-0' }}
+        </div>
+
+        <div class="num" [class.pos]="getPeriodPct(p)>0" [class.neg]="getPeriodPct(p)<0">
+          {{ formatSign(getPeriodPct(p)) }}{{ (getPeriodPct(p)<0 ? -getPeriodPct(p) : getPeriodPct(p)) | number:'1.2-2' }}%
+        </div>
+
+        <div class="num">{{ p.invWtPct | number:'1.1-1' }}%</div>
+        <div class="num">{{ p.valWtPct | number:'1.1-1' }}%</div>
+        <div class="num" [class.pos]="p.driftPct>0" [class.neg]="p.driftPct<0">
+          {{ formatSign(p.driftPct) }}{{ (p.driftPct<0 ? -p.driftPct : p.driftPct) | number:'1.1-1' }}%
+        </div>
+
+        <button class="row-btn" (click)="toggleExpand(p.symbol)">
+          {{ expanded.has(p.symbol) ? 'Hide' : 'Details' }}
+        </button>
+      </div>
+
+      <div class="details" *ngIf="expanded.has(p.symbol)">
+        <div class="kv"><span>Total Investment</span><b>₹{{ p.totalInvestment | number:'1.0-0' }}</b></div>
+        <div class="kv"><span>Current Value</span><b>₹{{ p.currentValue | number:'1.0-0' }}</b></div>
+        <div class="kv"><span>Avg Price</span><b>{{ p.avgPrice | number:'1.2-2' }}</b></div>
+        <div class="kv"><span>Latest Price</span><b>{{ p.latestPrice | number:'1.2-2' }}</b></div>
+        <div class="kv"><span>Prev Close</span><b>{{ p.prevClose | number:'1.2-2' }}</b></div>
+        <div class="kv"><span>Day P/L</span><b>{{ p.dayPnl | number:'1.0-0' }} ({{ p.dayPnlPct | number:'1.2-2' }}%)</b></div>
+        <div class="kv"><span>Week P/L</span><b>{{ p.weekPnl | number:'1.0-0' }} ({{ p.weekPnlPct | number:'1.2-2' }}%)</b></div>
+        <div class="kv"><span>Month P/L</span><b>{{ p.monthPnl | number:'1.0-0' }} ({{ p.monthPnlPct | number:'1.2-2' }}%)</b></div>
+      </div>
+    </ng-container>
+  </section>
+
+  <!-- Mobile/iPad cards -->
+  <section class="cards" *ngIf="!loading && !error">
+    <article class="card" *ngFor="let p of positions">
+      <div class="card-head">
+        <div>
+          <div class="sym">{{ p.symbol }}</div>
+          <div class="muted">Qty {{ p.quantity }}</div>
+        </div>
+        <div class="right">
+          <div class="money">₹{{ p.currentValue | number:'1.0-0' }}</div>
+          <div class="muted">Inv ₹{{ p.totalInvestment | number:'1.0-0' }}</div>
+        </div>
+      </div>
+
+      <div class="weights">
+        <div class="chips">
+          <span class="chip">Inv {{ p.invWtPct | number:'1.1-1' }}%</span>
+          <span class="chip">Val {{ p.valWtPct | number:'1.1-1' }}%</span>
+          <span class="chip" [class.pos]="p.driftPct>0" [class.neg]="p.driftPct<0">
+            Drift {{ formatSign(p.driftPct) }}{{ (p.driftPct<0 ? -p.driftPct : p.driftPct) | number:'1.1-1' }}%
+          </span>
+        </div>
+
+        <div class="bar">
+          <div class="bar-inv" [style.width.%]="p.invWtPct"></div>
+          <div class="bar-val" [style.width.%]="p.valWtPct"></div>
+        </div>
+      </div>
+
+      <div class="pl-row">
+        <div>
+          <div class="label">Total P/L</div>
+          <div class="big" [class.pos]="p.pl>0" [class.neg]="p.pl<0">
+            {{ formatSign(p.pl) }}₹{{ (p.pl<0 ? -p.pl : p.pl) | number:'1.0-0' }}
+          </div>
+          <div class="muted" [class.pos]="p.plLossPct>0" [class.neg]="p.plLossPct<0">
+            {{ formatSign(p.plLossPct) }}{{ (p.plLossPct<0 ? -p.plLossPct : p.plLossPct) | number:'1.2-2' }}%
+          </div>
+        </div>
+
+        <div class="right">
+          <div class="label">{{ period }} P/L</div>
+          <div class="big" [class.pos]="getPeriodPnl(p)>0" [class.neg]="getPeriodPnl(p)<0">
+            {{ formatSign(getPeriodPnl(p)) }}₹{{ (getPeriodPnl(p)<0 ? -getPeriodPnl(p) : getPeriodPnl(p)) | number:'1.0-0' }}
+          </div>
+          <div class="muted" [class.pos]="getPeriodPct(p)>0" [class.neg]="getPeriodPct(p)<0">
+            {{ formatSign(getPeriodPct(p)) }}{{ (getPeriodPct(p)<0 ? -getPeriodPct(p) : getPeriodPct(p)) | number:'1.2-2' }}%
+          </div>
+        </div>
+      </div>
+
+      <div class="prices">
+        <div><span class="muted">Avg</span> {{ p.avgPrice | number:'1.2-2' }}</div>
+        <div><span class="muted">LTP</span> {{ p.latestPrice | number:'1.2-2' }}</div>
+        <div><span class="muted">Prev</span> {{ p.prevClose | number:'1.2-2' }}</div>
+      </div>
+
+      <button class="details-btn" (click)="toggleExpand(p.symbol)">
+        {{ expanded.has(p.symbol) ? 'Hide details' : 'Show details' }}
+      </button>
+
+      <div class="details-card" *ngIf="expanded.has(p.symbol)">
+        <div class="kv"><span>Total Investment</span><b>₹{{ p.totalInvestment | number:'1.0-0' }}</b></div>
+        <div class="kv"><span>Current Value</span><b>₹{{ p.currentValue | number:'1.0-0' }}</b></div>
+        <div class="kv"><span>Total P/L</span><b>₹{{ p.pl | number:'1.0-0' }}</b></div>
+        <div class="kv"><span>Total P/L%</span><b>{{ p.plLossPct | number:'1.2-2' }}%</b></div>
+
+        <div class="kv"><span>Day P/L</span><b>{{ p.dayPnl | number:'1.0-0' }} ({{ p.dayPnlPct | number:'1.2-2' }}%)</b></div>
+        <div class="kv"><span>Week P/L</span><b>{{ p.weekPnl | number:'1.0-0' }} ({{ p.weekPnlPct | number:'1.2-2' }}%)</b></div>
+        <div class="kv"><span>Month P/L</span><b>{{ p.monthPnl | number:'1.0-0' }} ({{ p.monthPnlPct | number:'1.2-2' }}%)</b></div>
+      </div>
+    </article>
+  </section>
+</div>

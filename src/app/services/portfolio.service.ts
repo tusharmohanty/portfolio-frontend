@@ -1,52 +1,38 @@
+// src/app/services/portfolio.service.ts
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject } from 'rxjs';
 import { Holding } from '../models/holding.model';
 
 @Injectable({ providedIn: 'root' })
 export class PortfolioService {
+  private readonly holdingsSubject = new BehaviorSubject<Holding[]>([]);
+  readonly holdings$ = this.holdingsSubject.asObservable();
 
-  holdings: Holding[] = [
-    { symbol: 'RELIANCE', quantity: 10, avgPrice: 2500, currentPrice: 2800 },
-    { symbol: 'TCS', quantity: 5, avgPrice: 3500, currentPrice: 3900 },
-    { symbol: 'INFY', quantity: 15, avgPrice: 1400, currentPrice: 1500 }
-  ];
+  // recommend: in dev use proxy "/api"
+  private readonly baseUrl = '/api';
 
-  watchlist: Holding[] = [
-    { symbol: 'HDFCBANK', quantity: 0, avgPrice: 0, currentPrice: 1650 },
-    { symbol: 'ITC', quantity: 0, avgPrice: 0, currentPrice: 450 }
-  ];
+  constructor(private http: HttpClient) {}
 
-  getHoldings() {
-      return this.holdings;
+  refreshHoldings() {
+    this.http.get<Holding[]>(`${this.baseUrl}/holdings`)
+      .subscribe({
+        next: (rows) => this.holdingsSubject.next(rows ?? []),
+        error: (e) => console.error('Failed to load holdings', e),
+      });
   }
 
-  getWatchlist() {
-      return this.watchlist;
-  }
-
-  getInvestment(h: Holding) {
-    return h.quantity * h.avgPrice;
+  // Derived fields you need for UI
+  getInvested(h: Holding) {
+    return h.quantity * h.averagePrice;
   }
 
   getCurrentValue(h: Holding) {
-    return h.quantity * h.currentPrice;
+    return h.quantity * h.lastPrice;
   }
 
   getPLPercent(h: Holding) {
-    const inv = this.getInvestment(h);
-    if (!inv) return 0;
-    return ((this.getCurrentValue(h) - inv) / inv) * 100;
-  }
-
-  get totalInvestment() {
-    return this.holdings.reduce((s, h) => s + this.getInvestment(h), 0);
-  }
-
-  get totalCurrentValue() {
-    return this.holdings.reduce((s, h) => s + this.getCurrentValue(h), 0);
-  }
-
-  get totalPLPercent() {
-    if (!this.totalInvestment) return 0;
-    return ((this.totalCurrentValue - this.totalInvestment) / this.totalInvestment) * 100;
+    const inv = this.getInvested(h);
+    return inv ? (h.pnl / inv) * 100 : 0;
   }
 }

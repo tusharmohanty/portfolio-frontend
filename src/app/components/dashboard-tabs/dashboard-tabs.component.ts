@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HoldingsListComponent } from './components/holdings-list/holdings-list.component';
-import { WatchlistComponent } from './components/watchlist/watchlist.component';
+import { HoldingsListComponent } from '../holdings-list/holdings-list.component';
+import { WatchlistComponent } from '..//watchlist/watchlist.component';
 @Component({
   selector: 'app-dashboard-tabs',
     standalone: true,

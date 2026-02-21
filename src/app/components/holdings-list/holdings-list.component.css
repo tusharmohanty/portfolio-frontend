@@ -1,2 +1,265 @@
-.panel { padding: 10px; }
-.panel-title { color: #f0a500; font-weight: bold; margin-bottom: 8px; }
+:root {
+  --bg: #0b0d12;
+  --panel: #111522;
+  --panel2: #0f1320;
+  --text: #e7e9ee;
+  --muted: #9aa3b2;
+  --line: rgba(255,255,255,0.08);
+  --chip: rgba(255,255,255,0.10);
+  --pos: #3ad37a;
+  --neg: #ff5b6b;
+}
+
+.page {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 14px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.chip {
+  background: var(--chip);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 12px 10px;
+}
+
+.sym .symbol {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+.right {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.ltp {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.thesisBtn {
+  background: rgba(120, 170, 255, 0.16);
+  border: 1px solid rgba(120, 170, 255, 0.22);
+  color: var(--text);
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 10px 12px 12px;
+}
+
+.kv {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.kv.emph {
+  border-color: rgba(120, 170, 255, 0.45);
+  box-shadow: 0 0 0 1px rgba(120, 170, 255, 0.25) inset;
+}
+
+.k {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.v {
+  margin-top: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pos { color: var(--pos); }
+.neg { color: var(--neg); }
+.muted { color: var(--muted); }
+
+.accentBar { height: 4px; width: 100%; }
+.posBar { background: rgba(58, 211, 122, 0.65); }
+.negBar { background: rgba(255, 91, 107, 0.65); }
+
+/* Desktop table */
+.tableWrap {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--panel), var(--panel2));
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(17, 21, 34, 0.95);
+  backdrop-filter: blur(8px);
+  font-size: 12px;
+  text-align: left;
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  user-select: none;
+  cursor: pointer;
+}
+
+thead th.active { color: var(--text); }
+
+tbody td {
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 13px;
+}
+
+.symbolCell .symbol { font-weight: 800; }
+
+/* Bottom sheet */
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 50;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0f1320;
+  border-top: 1px solid var(--line);
+  border-radius: 16px 16px 0 0;
+  z-index: 60;
+  padding: 10px 12px 14px;
+}
+
+.sheetHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px 10px;
+}
+
+.sheetTitle { font-weight: 800; }
+
+.sheetClose {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.sheetItem {
+  width: 100%;
+  text-align: left;
+  margin: 6px 0;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
+.sheetItem.active {
+  border-color: rgba(120, 170, 255, 0.45);
+  background: rgba(120, 170, 255, 0.10);
+}
+
+/* Thesis drawer */
+.drawerBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 70;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(420px, 92vw);
+  height: 100%;
+  background: #0f1320;
+  border-left: 1px solid var(--line);
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drawerTitle { font-weight: 900; }
+
+.drawerBody {
+  padding: 12px;
+  overflow: auto;
+}
+
+.box {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,0.03);
+}
