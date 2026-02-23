@@ -17,26 +17,6 @@ export class WatchlistComponent {
 
   constructor(public portfolio: PortfolioService) {}
 
-  get sortedWatchlist(): WatchlistItem[] {
-    return [...this.portfolio.watchlist].sort((a, b) => {
-      let valA: number | string;
-      let valB: number | string;
-
-      switch (this.sortColumn) {
-        case 'price':
-          valA = a.price;
-          valB = b.price;
-          break;
-        default:
-          valA = a.symbol;
-          valB = b.symbol;
-      }
-
-      if (valA < valB) return this.sortAsc ? -1 : 1;
-      if (valA > valB) return this.sortAsc ? 1 : -1;
-      return 0;
-    });
-  }
 
   sort(col: string) {
     if (this.sortColumn === col) this.sortAsc = !this.sortAsc;

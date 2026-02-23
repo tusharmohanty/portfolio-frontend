@@ -10,12 +10,5 @@
       <th (click)="sort('price')">Price</th>
     </tr>
     </thead>
-
-    <tbody>
-    <tr *ngFor="let w of sortedWatchlist">
-      <td>{{ w.symbol }}</td>
-      <td>₹ {{ w.price | number }}</td>
-    </tr>
-    </tbody>
   </table>
 </div>

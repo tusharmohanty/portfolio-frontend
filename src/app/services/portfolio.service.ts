@@ -35,4 +35,6 @@ export class PortfolioService {
     const inv = this.getInvested(h);
     return inv ? (h.pnl / inv) * 100 : 0;
   }
+
+  
 }
