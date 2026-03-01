@@ -1,0 +1,285 @@
+/* Dark mobile holdings vibe */
+.page {
+  min-height: 100vh;
+  padding: 14px 14px 24px;
+  background: #0b0f17;
+  color: #e9eefc;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 2px 12px;
+}
+
+.brandTitle {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.brandSub {
+  margin-top: 2px;
+  font-size: 12px;
+  color: rgba(233, 238, 252, 0.6);
+}
+
+.btn {
+  border: 1px solid rgba(233, 238, 252, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(233, 238, 252, 0.9);
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+}
+
+.controlsCard {
+  border-radius: 18px;
+  padding: 12px;
+  border: 1px solid rgba(233, 238, 252, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  margin-bottom: 12px;
+}
+
+.controlRow {
+  display: grid;
+  grid-template-columns: 1fr 170px;
+  gap: 10px;
+  align-items: center;
+}
+
+.search {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(233, 238, 252, 0.10);
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(233, 238, 252, 0.95);
+  outline: none;
+}
+
+.search::placeholder {
+  color: rgba(233, 238, 252, 0.45);
+}
+
+.select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(233, 238, 252, 0.10);
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(233, 238, 252, 0.95);
+  outline: none;
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+.meta {
+  font-size: 12px;
+  color: rgba(233, 238, 252, 0.65);
+}
+
+.dot { margin: 0 6px; color: rgba(233, 238, 252, 0.25); }
+
+.hint {
+  font-size: 11px;
+  color: rgba(233, 238, 252, 0.45);
+  text-align: right;
+}
+
+.error {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #ffb4b4;
+  border: 1px solid rgba(255, 180, 180, 0.25);
+  background: rgba(255, 0, 0, 0.06);
+  padding: 10px 12px;
+  border-radius: 14px;
+}
+
+.list {
+  display: grid;
+  gap: 10px;
+}
+
+.rowCard {
+  position: relative;
+  border-radius: 18px;
+  padding: 12px 12px 12px 14px;
+  border: 1px solid rgba(233, 238, 252, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.accent {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 8px;
+  background: rgba(233, 238, 252, 0.12);
+}
+
+/* accent types */
+.accent.a1 { background: rgba(120, 210, 255, 0.85); } /* breakout */
+.accent.a2 { background: rgba(255, 120, 120, 0.85); } /* breakdown */
+.accent.a3 { background: rgba(170, 255, 150, 0.85); } /* near support */
+.accent.a4 { background: rgba(255, 220, 140, 0.85); } /* in band */
+
+.symbolLine {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.symbol {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+.date {
+  font-size: 11px;
+  color: rgba(233, 238, 252, 0.5);
+}
+
+.subLine {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.subItem {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  padding: 6px 8px;
+  border-radius: 14px;
+  border: 1px solid rgba(233, 238, 252, 0.08);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.subItem .k {
+  font-size: 11px;
+  color: rgba(233, 238, 252, 0.55);
+  font-weight: 700;
+}
+
+.subItem .v {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(233, 238, 252, 0.90);
+}
+
+.right {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  justify-items: end;
+}
+
+.closeLabel {
+  font-size: 10px;
+  color: rgba(233, 238, 252, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.closeValue {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.chip {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 238, 252, 0.10);
+  background: rgba(0, 0, 0, 0.18);
+  color: rgba(233, 238, 252, 0.85);
+}
+
+.chip.dev {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+}
+
+.chip.dev.negative {
+  border-color: rgba(255, 120, 120, 0.25);
+  background: rgba(255, 0, 0, 0.06);
+  color: rgba(255, 200, 200, 0.95);
+}
+
+/* signal chip coloring */
+.chip.breakout {
+  border-color: rgba(120, 210, 255, 0.30);
+  background: rgba(120, 210, 255, 0.10);
+  color: rgba(210, 245, 255, 0.95);
+}
+
+.chip.breakdown {
+  border-color: rgba(255, 120, 120, 0.30);
+  background: rgba(255, 120, 120, 0.10);
+  color: rgba(255, 210, 210, 0.95);
+}
+
+.chip.near {
+  border-color: rgba(170, 255, 150, 0.28);
+  background: rgba(170, 255, 150, 0.10);
+  color: rgba(220, 255, 210, 0.95);
+}
+
+.chip.inband {
+  border-color: rgba(255, 220, 140, 0.28);
+  background: rgba(255, 220, 140, 0.10);
+  color: rgba(255, 240, 200, 0.95);
+}
+
+.empty {
+  text-align: center;
+  color: rgba(233, 238, 252, 0.55);
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px dashed rgba(233, 238, 252, 0.12);
+}
+
+/* skeleton */
+.skeleton {
+  display: grid;
+  gap: 10px;
+}
+.skRow {
+  height: 82px;
+  border-radius: 18px;
+  border: 1px solid rgba(233, 238, 252, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+}

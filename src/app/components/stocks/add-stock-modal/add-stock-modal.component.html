@@ -1,0 +1,68 @@
+<div *ngIf="open" class="backdrop" (click)="close(false)">
+  <div class="modal" (click)="stop($event)">
+    <div class="modalHeader">
+      <div>
+        <div class="title">Add Stock</div>
+        <div class="sub">Create a master stock entry.</div>
+      </div>
+
+      <button class="iconBtn" (click)="close(false)" aria-label="Close">✕</button>
+    </div>
+
+    <div class="modalBody">
+      <div class="grid">
+        <div class="field">
+          <label>Symbol <span class="req">*</span></label>
+          <input [(ngModel)]="form.symbol" (blur)="normalizeSymbol()" placeholder="e.g. TCS" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label>Sector <span class="req">*</span></label>
+          <input [(ngModel)]="form.sector" placeholder="e.g. IT Services" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <label>Holding Type</label>
+          <select [(ngModel)]="form.holdingType">
+            <option [ngValue]="null">—</option>
+            <option value="CORE">CORE</option>
+            <option value="SWING">SWING</option>
+            <option value="WATCH">WATCH</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Exchange <span class="req">*</span></label>
+          <select [(ngModel)]="form.exchange">
+            <option value="NSE">NSE</option>
+            <option value="BSE">BSE</option>
+            <option value="NFO">NFO</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Instrument <span class="req">*</span></label>
+          <select [(ngModel)]="form.instrument">
+            <option value="EQ">EQ</option>
+            <option value="BE">BE</option>
+            <option value="SM">SM</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Instrument Token</label>
+          <input type="number" [(ngModel)]="form.instrumentToken" placeholder="e.g. 2953217" />
+        </div>
+      </div>
+
+      <div *ngIf="error()" class="err">{{ error() }}</div>
+    </div>
+
+    <div class="modalFooter">
+      <button class="btn ghost" (click)="close(false)" [disabled]="saving()">Cancel</button>
+      <button class="btn primary" (click)="save()" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Save' }}
+      </button>
+    </div>
+  </div>
+</div>

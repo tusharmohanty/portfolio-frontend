@@ -1,0 +1,130 @@
+<!-- returns.component.html (DROP-IN, no template casts) -->
+<div class="page">
+  <div class="header">
+    <div>
+      <div class="title">Market Returns</div>
+      <div class="subtle">
+        Showing {{ viewRows().length }} • last day = {{ lastDay() }}
+      </div>
+    </div>
+
+    <div class="controls">
+      <select [value]="filter()" (change)="onFilterChange($event)">
+        <option value="ALL">All</option>
+        <option value="PULLBACKS">Trend Continuation Pullbacks</option>
+      </select>
+
+      <select
+        [value]="sortKey()"
+        (change)="onSortChange($event)"
+        [disabled]="showPullbackColumns()">
+        <option value="weekPct">Week %</option>
+        <option value="monthPct">Month %</option>
+        <option value="dayPct">Day %</option>
+        <option value="atrPct">ATR %</option>
+        <option value="volumeRatio20">Vol Ratio</option>
+        <option value="trendAligned">Trend</option>
+        <option value="symbol">Symbol</option>
+        <option value="lastClose">Last Close</option>
+        <option value="tradeDate">Trade Date</option>
+      </select>
+
+      <button
+        class="btn"
+        (click)="sortDir.set(sortDir() === 'asc' ? 'desc' : 'asc')"
+        [disabled]="showPullbackColumns()">
+        {{ sortDir() === 'asc' ? '↑' : '↓' }}
+      </button>
+
+      <button class="btn" (click)="load()">Refresh</button>
+    </div>
+  </div>
+
+  <div class="card" *ngIf="loading()">Loading…</div>
+
+  <div class="card" *ngIf="!loading() && viewRows().length === 0">
+    No rows.
+  </div>
+
+  <div class="card" *ngIf="!loading() && viewRows().length > 0">
+    <div class="tableWrap">
+      <div class="table" [class.compact]="showPullbackColumns()">
+
+        <!-- Header -->
+        <div class="row head" [class.compact]="showPullbackColumns()">
+          <div class="cell sym" (click)="toggleSort('symbol')">Symbol</div>
+          <div class="cell num" (click)="toggleSort('lastClose')">Close</div>
+          <div class="cell num" (click)="toggleSort('dayPct')">D%</div>
+          <div class="cell num" (click)="toggleSort('weekPct')">W%</div>
+          <div class="cell num" (click)="toggleSort('monthPct')">M%</div>
+          <div class="cell num" (click)="toggleSort('atrPct')">ATR%</div>
+          <div class="cell num" (click)="toggleSort('volumeRatio20')">Vol</div>
+
+          <!-- Pullbacks-only columns -->
+          <ng-container *ngIf="showPullbackColumns()">
+            <div class="cell num">ΔATR</div>
+            <div class="cell num">Zone</div>
+            <div class="cell num">ATR SL</div>
+            <div class="cell num">Trend SL</div>
+          </ng-container>
+
+          <!-- ALL-only -->
+          <div class="cell sig" *ngIf="!showPullbackColumns()" (click)="toggleSort('trendAligned')">
+            Trend
+          </div>
+        </div>
+
+        <!-- Rows -->
+        <div
+          class="row"
+          *ngFor="let r of viewRows(); trackBy: trackBySymbol"
+          [class.compact]="showPullbackColumns()">
+
+          <div class="cell sym">
+            <div class="symMain">{{ r.symbol }}</div>
+
+            <button
+              type="button"
+              class="symSub chartBtn"
+              title="Open chart"
+              aria-label="Open chart for {{ r.symbol }}"
+              (click)="openChart(r.symbol); $event.stopPropagation()">
+              📈 Chart
+            </button>
+          </div>
+
+          <div class="cell num">{{ fmt(getLastClose(r), 2) }}</div>
+
+          <div class="cell num" [class.pos]="isPos(getDayPct(r))" [class.neg]="isNeg(getDayPct(r))">
+            {{ fmt(getDayPct(r), 2) }}%
+          </div>
+
+          <div class="cell num" [class.pos]="isPos(getWeekPct(r))" [class.neg]="isNeg(getWeekPct(r))">
+            {{ fmt(getWeekPct(r), 2) }}%
+          </div>
+
+          <div class="cell num" [class.pos]="isPos(getMonthPct(r))" [class.neg]="isNeg(getMonthPct(r))">
+            {{ fmt(getMonthPct(r), 2) }}%
+          </div>
+
+          <div class="cell num">{{ fmt(getAtrPct(r), 2) }}%</div>
+          <div class="cell num">{{ fmt(getVolRatio(r), 2) }}</div>
+
+          <!-- Pullbacks-only cells -->
+          <ng-container *ngIf="showPullbackColumns()">
+            <div class="cell num">{{ fmt(getDeltaInAtr(r), 2) }}</div>
+            <div class="cell num">{{ getBucketRank(r) ?? '—' }}</div>
+            <div class="cell num">{{ fmt(getStopAtr15(r), 2) }}</div>
+            <div class="cell num">{{ fmt(getTrendStop(r), 2) }}</div>
+          </ng-container>
+
+          <!-- ALL-only cells -->
+          <div class="cell sig" *ngIf="!showPullbackColumns()">
+            <span class="badge">{{ trendBadge(r) }}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

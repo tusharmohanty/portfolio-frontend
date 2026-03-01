@@ -1,0 +1,155 @@
+/* ---- Page layout: fill viewport, chart stretches ---- */
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* header layout */
+.header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+/* ---- Title + legend ---- */
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.symbol {
+  font-weight: 600;
+  margin-right: 16px;
+}
+
+.legend {
+  font-weight: 500;
+}
+
+/* Match your chart series colors */
+.legend.close { color: #e5e7eb; }     /* Close */
+.legend.ema20 { color: #00bcd4; }     /* EMA20 */
+.legend.ema50 { color: #ff9800; }     /* EMA50 */
+.legend.ema200 { color: #e91e63; }    /* EMA200 */
+.legend.volume { color: #607d8b; }    /* Volume */
+.legend.rsi { color: #9c27b0; }       /* RSI */
+.legend.macd { color: #4caf50; }      /* MACD */
+
+/* ---- Dropdown ---- */
+.indicators {
+  position: relative;
+}
+
+.indicators > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.indicators > summary::-webkit-details-marker {
+  display: none;
+}
+
+.indicatorMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 20;
+
+  display: grid;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  background: #0b1220; /* matches your dark chart bg */
+  border: 1px solid rgba(148,163,184,0.25);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+
+  min-width: 160px;
+}
+
+.chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  user-select: none;
+  color: #cbd5e1;
+}
+
+/* subtle button style for dropdown trigger */
+.btnGhost {
+  background: transparent;
+  border: 1px solid rgba(148,163,184,0.25);
+}
+
+/* ---- Chart grid: flex column that fills remaining height ---- */
+.chartGrid {
+  flex: 1 1 auto;           /* take remaining space under header */
+  min-height: 0;            /* critical for flex children */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+}
+
+/* Each pane is label + body; body expands */
+.pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.paneLabel {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.paneBody {
+  flex: 1 1 auto;
+  min-height: 120px;        /* floor so small panes don't collapse too hard */
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Allocate heights: Price grows, others are fixed-ish */
+.pricePane { flex: 1 1 auto; }
+.volPane   { flex: 0 0 170px; }
+.rsiPane   { flex: 0 0 160px; }
+.macdPane  { flex: 0 0 180px; }
+
+/* When RSI+MACD are hidden, give price more */
+.chartGrid.compact .volPane { flex-basis: 190px; }
+.chartGrid.compact .pricePane { flex: 1 1 auto; }
+
+/* When exactly one of RSI/MACD is visible */
+.chartGrid.oneExtra .volPane { flex-basis: 170px; }
+.chartGrid.oneExtra .pricePane { flex: 1 1 auto; }
+
+/* overlays */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #cbd5e1;
+  background: rgba(11, 18, 32, 0.55);
+  border-radius: 12px;
+  pointer-events: none;
+}

@@ -63,7 +63,7 @@ log "Sync dest  : $SYNC_DEST"
 
 # ---- Remote dir ----
 log "Preparing remote directory"
-ssh -t "$CASTLE_SSH" "sudo mkdir -p '$SYNC_DEST' && sudo chown -R '$CASTLE_USER':\$(id -gn '$CASTLE_USER') '$REMOTE_FRONTEND_DIR'"
+#ssh -t "$CASTLE_SSH" "sudo mkdir -p '$SYNC_DEST' && sudo chown -R '$CASTLE_USER':\$(id -gn '$CASTLE_USER') '$REMOTE_FRONTEND_DIR'"
 
 # ---- Deploy ----
 log "Deploying files (rsync --delete)"

@@ -1,0 +1,89 @@
+<div class="page">
+  <div class="header">
+    <div class="titleRow">
+      <span class="symbol">Chart • {{ symbol() }}</span>
+
+      <span class="legend close">Close</span>
+      <span class="legend ema20">EMA20</span>
+      <span class="legend ema50">EMA50</span>
+      <span class="legend ema200">EMA200</span>
+      <span class="legend volume">Volume</span>
+      <span class="legend rsi">RSI</span>
+      <span class="legend macd">MACD</span>
+    </div>
+
+    <div class="controls">
+      <button class="btn" (click)="back()">← Back</button>
+
+      <details class="indicators" #indMenu>
+        <summary class="btn btnGhost">Indicators ▾</summary>
+
+        <div class="indicatorMenu">
+          <label class="chk">
+            <input type="checkbox"
+                   [checked]="showEma20()"
+                   (change)="toggleEma('ema20', $event)" />
+            EMA20
+          </label>
+
+          <label class="chk">
+            <input type="checkbox"
+                   [checked]="showEma50()"
+                   (change)="toggleEma('ema50', $event)" />
+            EMA50
+          </label>
+
+          <label class="chk">
+            <input type="checkbox"
+                   [checked]="showEma200()"
+                   (change)="toggleEma('ema200', $event)" />
+            EMA200
+          </label>
+
+          <label class="chk">
+            <input type="checkbox"
+                   [checked]="showRsi()"
+                   (change)="toggleRsi($event)" />
+            RSI
+          </label>
+
+          <label class="chk">
+            <input type="checkbox"
+                   [checked]="showMacd()"
+                   (change)="toggleMacd($event)" />
+            MACD
+          </label>
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Make chart area stretch and remove bottom whitespace -->
+  <div class="chartGrid"
+       [class.compact]="!showRsi() && !showMacd()"
+       [class.oneExtra]="(showRsi() && !showMacd()) || (!showRsi() && showMacd())">
+
+    <div class="pane pricePane">
+      <div class="paneLabel">Price</div>
+      <div #priceEl class="paneBody"></div>
+    </div>
+
+    <div class="pane volPane">
+      <div class="paneLabel">Volume</div>
+      <div #volumeEl class="paneBody"></div>
+    </div>
+
+    <div class="pane rsiPane" *ngIf="showRsi()">
+      <div class="paneLabel">RSI</div>
+      <div #rsiEl class="paneBody"></div>
+    </div>
+
+    <div class="pane macdPane" *ngIf="showMacd()">
+      <div class="paneLabel">MACD</div>
+      <div #macdEl class="paneBody"></div>
+    </div>
+
+    <div class="overlay" *ngIf="loading()">Loading chart…</div>
+    <div class="overlay" *ngIf="!loading() && !chart()">No chart data.</div>
+  </div>
+</div>

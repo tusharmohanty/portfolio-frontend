@@ -79,3 +79,5 @@ td { padding:12px; border-bottom:1px solid #162233; vertical-align:top; }
   border-color:#1f4b35;
   background:#10201a;
 }
+
+.small { font-size: 12px; opacity: 0.85; }

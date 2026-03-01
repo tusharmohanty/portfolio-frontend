@@ -26,13 +26,21 @@ export class SwingTradeGroupsComponent {
 
   expanded = signal<Set<number>>(new Set());
 
-  // OPEN aggregates (computed from returned fields when available)
-  openAgg = computed(() => {
-    const open = this.rows().filter(r => r.status === 'OPEN');
-    const inv = open.reduce((s, r) => s + (r.positionSize ?? 0), 0);
-    const pl = open.reduce((s, r) => (r.ltp == null ? s : s + (r.pl ?? 0)), 0);
+  loggedIn = signal(false);
+
+  // Aggregates SHOULD follow the current filter selection (OPEN/CLOSED/ALL)
+  summary = computed(() => {
+    const st = this.status();
+    const visible =
+      st === 'ALL'
+        ? this.rows()
+        : this.rows().filter(r => r.status === st);
+
+    const inv = visible.reduce((s, r) => s + (Number(r.positionSize ?? 0) || 0), 0);
+    const pl = visible.reduce((s, r) => s + (Number(r.pl ?? 0) || 0), 0);
     const plPct = inv !== 0 ? (pl / inv) * 100 : 0;
-    return { count: open.length, inv, pl, plPct };
+
+    return { count: visible.length, inv, pl, plPct };
   });
 
   sortOptions: { key: SwingSortKey; label: string }[] = [
@@ -45,32 +53,32 @@ export class SwingTradeGroupsComponent {
     { key: 'targetDeltaPct', label: '% Delta vs Target' },
     { key: 'holdingPeriodDays', label: 'Holding Period' },
   ];
-  loggedIn = signal(false);
 
   constructor(private api: SwingTradeService, private http: HttpClient) {
     const mq = window.matchMedia('(max-width: 820px)');
     mq.addEventListener('change', e => this.isMobile.set(e.matches));
+
     this.checkKiteAuth();
     this.load();
   }
 
   checkKiteAuth() {
-  // returns 200 text token OR 409 JSON
-  this.http.get('/auth/kite/token', { responseType: 'text' }).subscribe({
-    next: (token: string) => {
-      this.loggedIn.set(!!token && token.trim().length > 10);
-    },
-    error: (err: any) => {
-      // 409 = login required
-      this.loggedIn.set(false);
-    }
-  });
-}
+    // returns 200 text token OR 409 JSON
+    this.http.get('/auth/kite/token', { responseType: 'text' }).subscribe({
+      next: (token: string) => {
+        this.loggedIn.set(!!token && token.trim().length > 10);
+      },
+      error: () => {
+        // 409 = login required
+        this.loggedIn.set(false);
+      }
+    });
+  }
 
-startKiteLogin() {
-  const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
-  window.location.href = `/auth/kite/login?returnTo=${returnTo}`;
-}
+  startKiteLogin() {
+    const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `/auth/kite/login?returnTo=${returnTo}`;
+  }
 
   load() {
     this.loading.set(true);
@@ -115,4 +123,23 @@ startKiteLogin() {
   fmtNum(v: number | null | undefined): string {
     return v === null || v === undefined || Number.isNaN(v) ? '—' : String(v);
   }
+
+  onStatusChange(v: any) {
+  console.log('STATUS CHANGE ->', v);
+  this.status.set(v);
+  this.load();
+}
+
+dateRangeLabel(g: any): string {
+  const start = g?.openedAt ? new Date(g.openedAt) : null;
+  const isClosed = (g?.status || '').toUpperCase() === 'CLOSED';
+  const end = (isClosed && g?.closedAt) ? new Date(g.closedAt) : null;
+
+  const fmt = (d: Date) =>
+    d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+
+  if (!start) return '—';
+  if (end) return `${fmt(start)} - ${fmt(end)}`;
+  return `${fmt(start)} - Present`;
+}
 }

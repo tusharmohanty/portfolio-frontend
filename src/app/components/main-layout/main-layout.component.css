@@ -1,0 +1,121 @@
+.page{
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0b0f14;
+  color: #e6edf3;
+}
+
+.header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.brandTitle{ font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
+.brandSub{ font-size: 12px; opacity: 0.7; margin-top: 2px; }
+
+.btn{
+  border: 1px solid rgba(255,255,255,0.16);
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.loginBtn.logged{
+  border-color: rgba(0,255,160,0.35);
+}
+
+.tabs{
+  display:flex;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.tab{
+  text-decoration:none;
+  color: inherit;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  opacity: 0.85;
+}
+.tab.active{
+  opacity: 1;
+  border-color: rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.06);
+}
+
+.content{
+  flex: 1;
+  padding: 14px 12px;
+}
+
+.headerActions{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+/* Menu dropdown */
+.menuWrap{
+  position: relative;
+}
+
+.menuBtn{
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.menu{
+  position: absolute;
+  top: 44px;
+  right: 0;
+  min-width: 160px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(20, 24, 30, 0.98);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  overflow: hidden;
+  z-index: 50;
+}
+
+.menuItem{
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.menuItem:hover{
+  background: rgba(255,255,255,0.06);
+}
+
+/* Optional click-catcher */
+.backdrop{
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
+}
+
+.syncBanner{
+  margin: 10px 12px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0,255,160,0.22);
+  background: rgba(0,255,160,0.08);
+  font-size: 12px;
+  opacity: .95;
+}
+.syncBanner.err{
+  border-color: rgba(255,90,90,0.25);
+  background: rgba(255,90,90,0.10);
+}

@@ -2,17 +2,26 @@ import { Routes } from '@angular/router';
 import { HoldingsListComponent } from './components/holdings-list/holdings-list.component';
 import { CorePortfolioComponent } from './components/core-portfolio/core-portfolio.component';
 import { SwingTradeGroupsComponent } from './components/swing-trade-groups/swing-trade-groups.component';
-
+import { TradesToGroupComponent } from './components/trades-to-group/trades-to-group.component';
+import { MainLayoutComponent } from './components/main-layout/main-layout.component';
+import { WatchlistDeviationComponent } from './components/watchlist-deviation/watchlist-deviation.component';
+import { ReturnsComponent } from './components/returns/returns.component';
+import { ReturnsChartComponent } from './components/returns-chart/returns-chart.component';
 export const routes: Routes = [
-  // default landing
-  { path: '', redirectTo: 'holdings', pathMatch: 'full' },
-  
-  { path: 'swing', component: SwingTradeGroupsComponent },
-  // ✅ your pages
-  { path: 'holdings', component: HoldingsListComponent },
-  { path: 'core', component: CorePortfolioComponent },
-
-  // ✅ wildcard LAST (or it will hijack /core)
-  { path: '**', redirectTo: 'holdings' },
-  
+  {
+    path: '',
+    component: MainLayoutComponent,
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'swing' },
+      { path: 'swing', component: SwingTradeGroupsComponent },
+      { path: 'trades', component: TradesToGroupComponent },
+      { path: 'holdings', component: HoldingsListComponent },
+      { path: 'core', component: CorePortfolioComponent },
+      { path: 'watchlist', component: WatchlistDeviationComponent},
+      { path: 'returns', component: ReturnsComponent },
+      {path: 'returns/chart/:symbol',component: ReturnsChartComponent
+}
+    ],
+  },
+  { path: '**', redirectTo: 'swing' },
 ];

@@ -1,0 +1,125 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">
+      <div class="brandTitle">Watchlist</div>
+      <div class="brandSub">Deviation</div>
+    </div>
+
+    <button class="btn ghost" (click)="load()" [disabled]="loading()">
+      {{ loading() ? 'Loading…' : 'Refresh' }}
+    </button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controlsCard">
+    <div class="controlRow">
+      <input
+        class="search"
+        type="text"
+        placeholder="Search symbol…"
+        [value]="query()"
+        (input)="query.set(($any($event.target).value || ''))"
+      />
+
+      <select class="select" [value]="sortMode()" (change)="sortMode.set($any($event.target).value)">
+        <option value="NEAREST_SUPPORT">Nearest support</option>
+        <option value="BREAKDOWNS_FIRST">Breakdowns first</option>
+        <option value="BREAKOUTS_FIRST">Breakouts first</option>
+        <option value="BAND_POSITION">Band position</option>
+      </select>
+    </div>
+
+    <div class="metaRow">
+      <div class="meta">
+        Showing <b>{{ viewRows().length }}</b>
+        <span class="dot">•</span>
+        Sort: <b>{{ sortMode().replace('_',' ') }}</b>
+      </div>
+
+      <div class="hint">
+        Tip: nearest support = nearSupport first, then lowest dev%
+      </div>
+    </div>
+
+    <div class="error" *ngIf="error()">{{ error() }}</div>
+  </div>
+
+  <!-- List -->
+  <div class="list" *ngIf="!loading(); else loadingTpl">
+    <div class="rowCard" *ngFor="let r of viewRows()">
+
+      <div class="left">
+        <div class="symbolLine">
+          <div class="symbol">{{ r.symbol }}</div>
+          <div class="date">{{ r.tradeDate }}</div>
+        </div>
+
+        <div class="subLine">
+          <div class="subItem">
+            <span class="k">Low</span>
+            <span class="v">{{ r.lowPrice | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="subItem">
+            <span class="k">High</span>
+            <span class="v">{{ r.highPrice | number:'1.2-2' }}</span>
+          </div>
+
+          <div class="subItem">
+            <span class="k">Band</span>
+            <span class="v">{{ bandText(r) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="close">
+          <div class="closeLabel">Close</div>
+          <div class="closeValue">{{ r.lastClose | number:'1.2-2' }}</div>
+        </div>
+
+        <div class="chips">
+          <span
+            class="chip"
+            [class.breakdown]="r.breakdownBelowLow"
+            [class.breakout]="r.breakoutAboveHigh"
+            [class.near]="r.nearSupport"
+            [class.inband]="(!r.breakoutAboveHigh && !r.breakdownBelowLow && r.insideBand)"
+          >
+            {{ signalLabel(r) }}
+          </span>
+
+          <span
+            class="chip dev"
+            [class.negative]="(r.devFromLowPct ?? 0) < 0"
+          >
+            {{ devText(r) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- subtle accent bar like your holdings cards -->
+      <div
+        class="accent"
+        [class.a1]="r.breakoutAboveHigh"
+        [class.a2]="r.breakdownBelowLow"
+        [class.a3]="r.nearSupport"
+        [class.a4]="(!r.breakoutAboveHigh && !r.breakdownBelowLow && r.insideBand)"
+      ></div>
+
+    </div>
+
+    <div class="empty" *ngIf="viewRows().length === 0">
+      No rows match your filters.
+    </div>
+  </div>
+
+  <ng-template #loadingTpl>
+    <div class="skeleton">
+      <div class="skRow" *ngFor="let _ of [1,2,3,4,5,6]"></div>
+    </div>
+  </ng-template>
+
+</div>

@@ -1,0 +1,164 @@
+<div class="page">
+  <div class="topbar">
+    <div>
+      <div class="title">All Trades</div>
+      <div class="subtle">Search by symbol • Select trades • Create a Swing group</div>
+
+      <div class="agg" *ngIf="selectedCount() > 0">
+        <span class="mono">{{ selectedCount() }}</span> selected
+          • Qty: <span class="mono">{{ selectedQty() }}</span>
+          • Buy: <span class="mono">{{ selectedQtyBreakup().buy }}</span>
+          • Sell: <span class="mono">{{ selectedQtyBreakup().sell }}</span>
+          • Net: <span class="mono">{{ selectedQtyBreakup().net }}</span>
+      </div>
+
+    </div>
+    
+    <div class="controls">
+      <input class="input"
+             placeholder="Search symbol (e.g. HIKAL)"
+             [ngModel]="q()"
+             (ngModelChange)="q.set($event)" />
+      <button class="btn" (click)="load()">Refresh</button>
+    </div>
+  </div>
+  
+  <div class="actions">
+    <div class="left">
+      <button class="btn" (click)="toggleAllVisible()">Toggle visible</button>
+      <button class="btn ghost" (click)="clearSelection()" [disabled]="selectedCount()===0">Clear</button>
+    </div>
+
+    <div class="right">
+      <div class="chip">{{ selectedCount() }} selected</div>
+      <button class="btn primary" (click)="openCreate()" [disabled]="selectedCount()===0">
+        Create group & add
+      </button>
+    </div>
+    <button class="btn"
+        (click)="markSelectedAsCore()"
+        [disabled]="selectedCount()===0">
+  Mark Core
+</button>
+
+    <button class="btn ghost"
+            (click)="removeSelectedFromCore()"
+            [disabled]="selectedCount()===0">
+      Remove Core
+    </button>
+  </div>
+
+  <div *ngIf="loading()" class="muted">Loading…</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div class="tableWrap" *ngIf="!loading()">
+    <table class="table">
+      <thead>
+      <tr>
+        <th style="width:42px;"><input type="checkbox" (change)="toggleAllVisible()"></th>
+        <th (click)="toggleSort('symbol')" class="sortable">Symbol</th>
+        <th>Side</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th (click)="toggleSort('time')" class="sortable">Time
+            <span *ngIf="sortField()==='time'">
+                {{ sortDir()==='asc' ? '↑' : '↓' }}
+            </span>
+        </th>
+        <th class="mono">TradeId</th>
+        <th class="mono">OrderId</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr *ngFor="let t of filtered()" [class.sel]="selected().has(t.id)">
+        <td><input type="checkbox" [checked]="selected().has(t.id)" (change)="toggle(t.id)"></td>
+
+        <td>
+          <div class="sym">{{ t.tradingsymbol || '—' }}</div>
+          <div class="muted">{{ t.exchange || '—' }}</div>
+        </td>
+
+        <td>
+          <span class="pill" [class.buy]="side(t)==='BUY'" [class.sell]="side(t)==='SELL'">
+            {{ side(t) }}
+          </span>
+        </td>
+
+        <td>{{ t.quantity ?? '—' }}</td>
+        <td>{{ t.price == null ? '—' : (t.price | number:'1.2-4') }}</td>
+        <td>{{ t.tradeTimestamp ? (t.tradeTimestamp | date:'dd-MMM-yyyy HH:mm') : '—' }}</td>
+
+        <td class="mono">{{ t.tradeId || '—' }}</td>
+        <td class="mono">{{ t.orderId || '—' }}</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Create group drawer -->
+  <div class="overlay" *ngIf="showCreate()" (click)="closeCreate()"></div>
+  <div class="drawer" *ngIf="showCreate()">
+    <div class="drawerHead">
+      <div>
+        <div class="drawerTitle">Create Swing Group</div>
+        <div class="subtle">{{ selectedCount() }} trades will be added</div>
+      </div>
+      <button class="btn ghost" (click)="closeCreate()">✕</button>
+    </div>
+
+    <div *ngIf="createError()" class="error">{{ createError() }}</div>
+
+    <div class="form">
+      <div class="row2">
+        <label>
+          <div class="lbl">Symbol *</div>
+          <input class="input" [ngModel]="form().tradingsymbol"
+                 (ngModelChange)="form.set({ ...form(), tradingsymbol: $event })" />
+        </label>
+
+        <label>
+          <div class="lbl">Exchange *</div>
+          <select class="input" [ngModel]="form().exchange"
+                  (ngModelChange)="form.set({ ...form(), exchange: $event })">
+            <option value="NSE">NSE</option>
+            <option value="BSE">BSE</option>
+          </select>
+        </label>
+      </div>
+
+      <label>
+        <div class="lbl">Thesis Title</div>
+        <input class="input" [ngModel]="form().thesisTitle"
+               (ngModelChange)="form.set({ ...form(), thesisTitle: $event })" />
+      </label>
+
+      <label>
+        <div class="lbl">Thesis Notes</div>
+        <textarea class="input" rows="5" [ngModel]="form().thesisNotes"
+                  (ngModelChange)="form.set({ ...form(), thesisNotes: $event })"></textarea>
+      </label>
+
+      <div class="row2">
+        <label>
+          <div class="lbl">Strategy Tag</div>
+          <input class="input" [ngModel]="form().strategyTag"
+                 (ngModelChange)="form.set({ ...form(), strategyTag: $event })" />
+        </label>
+
+        <label>
+          <div class="lbl">Timeframe</div>
+          <input class="input" [ngModel]="form().timeframe"
+                 (ngModelChange)="form.set({ ...form(), timeframe: $event })" />
+        </label>
+      </div>
+    </div>
+
+    <div class="drawerActions">
+      <button class="btn ghost" (click)="closeCreate()" [disabled]="creating()">Cancel</button>
+      <button class="btn primary" (click)="createGroupAndAttach()" [disabled]="creating()">
+        {{ creating() ? 'Working…' : 'Create & Add Trades' }}
+      </button>
+    </div>
+  </div>
+</div>

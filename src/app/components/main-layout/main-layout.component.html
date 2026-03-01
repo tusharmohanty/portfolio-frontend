@@ -1,0 +1,91 @@
+<div class="page">
+  <!-- Header -->
+  <div class="header">
+    <div *ngIf="syncMsg()" class="syncBanner" [class.err]="syncErr()">
+        {{ syncMsg() }}
+    </div>
+  <div class="brand">
+    <div class="brandTitle">Portfolio</div>
+    <div class="brandSub">Kite</div>
+  </div>
+
+  <div class="headerActions">
+    <!-- ✅ Menu (left of Login) -->
+    <div class="menuWrap">
+      <button class="btn menuBtn" (click)="toggleMenu($event)">
+        ☰ Menu
+      </button>
+
+      <div class="menu" *ngIf="menuOpen()">
+        <button class="menuItem" (click)="openAddStocks()">
+          Add Stocks
+        </button>
+        <button class="menuItem" (click)="syncHistoricalPrices($event)">
+            Sync Prices
+        </button>
+      </div>
+    </div>
+
+    <!-- ✅ Login -->
+    <button class="btn loginBtn"
+            [class.logged]="loggedIn()"
+            (click)="startKiteLogin()">
+      {{ loggedIn() ? 'LoggedIn' : 'Login' }}
+    </button>
+  </div>
+</div>
+
+<!-- Optional: click-catcher to close menu when open -->
+<div class="backdrop" *ngIf="menuOpen()" (click)="closeMenu()"></div>
+
+<!-- rest stays same (tabs + router-outlet) -->
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <a class="tab"
+     routerLink="/returns"
+     routerLinkActive="active" 
+     [routerLinkActiveOptions]="{ exact: true }">
+      Stocks
+    </a>
+    <a class="tab"
+       routerLink="/swing"
+       routerLinkActive="active"
+       [routerLinkActiveOptions]="{ exact: true }">
+      Swing
+    </a>
+    <a class="tab"
+     routerLink="/watchlist"
+     routerLinkActive="active" 
+     [routerLinkActiveOptions]="{ exact: true }">
+      Watchlist
+    </a>
+    <a class="tab"
+       routerLink="/trades"
+       routerLinkActive="active">
+      Trades
+    </a>
+
+    <a class="tab"
+       routerLink="/holdings"
+       routerLinkActive="active">
+      Holdings
+    </a>
+     <a class="tab"
+     routerLink="/core"
+     routerLinkActive="active" 
+     [routerLinkActiveOptions]="{ exact: true }">
+    Core
+  </a>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <router-outlet></router-outlet>
+  </div>
+
+  <app-add-stock-modal
+  [open]="addStockOpen()"
+  (closed)="onAddStockClosed($event)">
+</app-add-stock-modal>
+</div>
