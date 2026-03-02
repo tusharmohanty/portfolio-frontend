@@ -9,7 +9,7 @@ import {
   AfterViewInit
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { MarketChartService } from '../../services/market-chart.service';
 import { MarketChartResponse } from '../../models/market-chart';
 
@@ -70,28 +70,46 @@ export class ReturnsChartComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private chartApi: MarketChartService
+    private chartApi: MarketChartService,
+    private location: Location
   ) {}
 
   ngOnInit() {
-    const sym = this.route.snapshot.paramMap.get('symbol');
-    if (!sym) return;
-    const symbol = sym.toUpperCase();
-    this.symbol.set(symbol);
-    this.load(symbol);
+  const sym = this.route.snapshot.paramMap.get('symbol');
+  if (!sym) return;
+
+  const symbol = sym.toUpperCase();
+  this.symbol.set(symbol);
+
+  // ✅ remember originating URL (passed by caller)
+  // example: /watchlist/deviation?sort=... or /swing/groups?status=OPEN
+  const from = this.route.snapshot.queryParamMap.get('from');
+
+  // store it in a simple field OR signal (either is fine)
+  // using a private field here:
+  this._fromUrl = from;
+
+  this.load(symbol);
+}
+
+// ✅ keep this field inside the class
+private _fromUrl: string | null = null;
+
+back() {
+  // ✅ If we have an explicit origin, go back there
+  if (this._fromUrl) {
+    this.router.navigateByUrl(this._fromUrl);
+    return;
   }
+
+  // ✅ Fallback: behave like browser back
+  this.location.back();
+}
 
   ngOnDestroy() {
     this.destroyCharts();
     this.resizeObs?.disconnect();
   }
-
-back() {
-  this.router.navigate(['/returns'], {
-    queryParamsHandling: 'preserve'
-  });
-}
-
   private load(symbol: string) {
     this.loading.set(true);
     this.chartApi.getChart(symbol).subscribe({

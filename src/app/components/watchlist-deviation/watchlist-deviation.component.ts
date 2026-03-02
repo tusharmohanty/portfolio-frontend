@@ -1,6 +1,7 @@
 import { Component, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 
 type SortMode = 'NEAREST_SUPPORT' | 'BREAKDOWNS_FIRST' | 'BREAKOUTS_FIRST' | 'BAND_POSITION';
 
@@ -35,6 +36,7 @@ export class WatchlistDeviationComponent {
   rows = signal<WatchlistDeviationRow[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+  filter = signal<string>('ALL');
 
   sortMode = signal<SortMode>('NEAREST_SUPPORT');
   query = signal<string>(''); // optional search
@@ -42,7 +44,10 @@ export class WatchlistDeviationComponent {
   // call your endpoint (adjust base path if you serve behind /api)
   private readonly url = '/api/watchlist/deviation';
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient,
+    private route: ActivatedRoute,
+    private router: Router
+  ) {
     this.load();
   }
 
@@ -166,4 +171,23 @@ export class WatchlistDeviationComponent {
     const v = r.bandPositionPct ?? 0;
     return `${v.toFixed(0)}%`;
   }
+// ✅ carry filter into chart page URL so Back restores it
+  openChart(symbol: string) {
+    const sym = (symbol || '').trim().toUpperCase();
+    if (!sym) return;
+
+    this.router.navigate(['/returns/chart', sym], {
+      queryParams: { filter: this.filter() }
+    });
+  }
+
+  // (kept for compatibility — not used when chart is its own page)
+  closeChart() {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { chart: null },
+      queryParamsHandling: 'merge'
+    });
+  }
+  
 }

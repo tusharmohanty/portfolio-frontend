@@ -1,94 +1,110 @@
+<!-- swing-trade-groups.component.html (UPDATED - snapshot inline, no Details) -->
 
-  <div class="topbar">
-    <div>
-      <div class="title">Swing Trade Groups</div>
-    </div>
-    <div class="controls">
-      <select [ngModel]="status()" (ngModelChange)="onStatusChange($event)">
-        <option value="OPEN">OPEN</option>
-        <option value="CLOSED">CLOSED</option>
-        <option value="ALL">ALL</option>
-      </select>
-
-      <select [ngModel]="sortKey()" (ngModelChange)="sortKey.set($event); load()">
-        <option *ngFor="let o of sortOptions" [value]="o.key">{{ o.label }}</option>
-      </select>
-
-      <button class="btn" (click)="sortDir.set(sortDir()==='asc' ? 'desc' : 'asc'); load()">
-        {{ sortDir() === 'asc' ? '↑' : '↓' }}
-      </button>
-    </div>
+<div class="topbar">
+  <div>
+    <div class="title">Swing Trade Groups</div>
   </div>
-  <div class="muted" style="padding:8px 0;">
+  <div class="controls">
+    <select [ngModel]="status()" (ngModelChange)="onStatusChange($event)">
+      <option value="OPEN">OPEN</option>
+      <option value="CLOSED">CLOSED</option>
+      <option value="ALL">ALL</option>
+    </select>
+
+    <select [ngModel]="sortKey()" (ngModelChange)="sortKey.set($event); load()">
+      <option *ngFor="let o of sortOptions" [value]="o.key">{{ o.label }}</option>
+    </select>
+
+    <button class="btn" (click)="sortDir.set(sortDir()==='asc' ? 'desc' : 'asc'); load()">
+      {{ sortDir() === 'asc' ? '↑' : '↓' }}
+    </button>
+  </div>
 </div>
-  <!-- Aggregates (follow the filter) -->
-  <div class="agg">
-    <div class="agg-card">
-      <div class="label">
-        {{ status()==='OPEN' ? 'Open Investment'
-          : status()==='CLOSED' ? 'Closed Investment'
-          : 'Total Investment' }}
-      </div>
-      <div class="value">{{ summary().inv | currency:'INR':'symbol':'1.0-0' }}</div>
-    </div>
 
-    <div class="agg-card" [class.pos]="summary().pl > 0" [class.neg]="summary().pl < 0">
-      <div class="label">
-        {{ status()==='OPEN' ? 'Open P/L'
-          : status()==='CLOSED' ? 'Realized P/L'
-          : 'Total P/L' }}
-      </div>
-      <div class="value">{{ summary().pl | currency:'INR':'symbol':'1.0-0' }}</div>
-    </div>
+<div class="muted" style="padding:8px 0;"></div>
 
-    <div class="agg-card" [class.pos]="summary().plPct > 0" [class.neg]="summary().plPct < 0">
-      <div class="label">
-        {{ status()==='OPEN' ? 'Open P/L%'
-          : status()==='CLOSED' ? 'Realized P/L%'
-          : 'Total P/L%' }}
-      </div>
-      <div class="value">{{ summary().plPct | number:'1.2-2' }}%</div>
+<!-- Aggregates (follow the filter) -->
+<div class="agg">
+  <div class="agg-card">
+    <div class="label">
+      {{ status()==='OPEN' ? 'Open Investment'
+        : status()==='CLOSED' ? 'Closed Investment'
+        : 'Total Investment' }}
     </div>
+    <div class="value">{{ summary().inv | currency:'INR':'symbol':'1.0-0' }}</div>
   </div>
 
-  <div *ngIf="loading()" class="muted">Loading…</div>
-  <div *ngIf="error()" class="error">{{ error() }}</div>
+  <div class="agg-card" [class.pos]="summary().pl > 0" [class.neg]="summary().pl < 0">
+    <div class="label">
+      {{ status()==='OPEN' ? 'Open P/L'
+        : status()==='CLOSED' ? 'Realized P/L'
+        : 'Total P/L' }}
+    </div>
+    <div class="value">{{ summary().pl | currency:'INR':'symbol':'1.0-0' }}</div>
+  </div>
 
-  <!-- Desktop table -->
-  <div *ngIf="!isMobile()" class="tableWrap">
-    <table class="table">
-      <thead>
-      <tr>
-        <th>Symbol</th>
-        <th>Strategy</th>
-        <th (click)="setSort('targetDeltaPct')">%Target</th>
-        <th>Target</th>
-        <th>Pos Size</th>
-        <th (click)="setSort('plPct')">%P/L</th>
-        <th>P/L</th>
-        <th (click)="setSort('holdingPeriodDays')">Hold (d)</th>
-        <th (click)="setSort('plPctDaily')">%Day</th>
-        <th (click)="setSort('plPctWeekly')">%Week</th>
-        <th (click)="setSort('plPctMonthly')">%Month</th>
-        <th>Status</th>
-        <th (click)="setSort('updatedAt')">Updated
-          <span *ngIf="sortKey()==='updatedAt'">{{ sortDir()==='asc' ? '↑' : '↓' }}</span>
-        </th>
-        <th></th>
-      </tr>
-      </thead>
+  <div class="agg-card" [class.pos]="summary().plPct > 0" [class.neg]="summary().plPct < 0">
+    <div class="label">
+      {{ status()==='OPEN' ? 'Open P/L%'
+        : status()==='CLOSED' ? 'Realized P/L%'
+        : 'Total P/L%' }}
+    </div>
+    <div class="value">{{ summary().plPct | number:'1.2-2' }}%</div>
+  </div>
+</div>
 
-      <tbody>
-      <ng-container *ngFor="let r of rows()">
-        <tr class="row" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
-          <td>
-            <div class="symbol">{{ r.tradingsymbol }}</div>
-            <div class="muted">{{ r.exchange }}</div>
-          </td>
+<div *ngIf="loading()" class="muted">Loading…</div>
+<div *ngIf="error()" class="error">{{ error() }}</div>
 
-          <td>
-            <div class="thesis">{{ r.thesisTitle || '—' }}</div>
-            <div class="muted">{{ r.strategyTag || '—' }} • {{ r.timeframe || '—' }}</div>
+<!-- Desktop table -->
+<div *ngIf="!isMobile()" class="tableWrap">
+  <table class="table">
+    <thead>
+    <tr>
+      <th>Symbol</th>
+      <th>Strategy</th>
+      <th (click)="setSort('targetDeltaPct')">%Target</th>
+      <th>Target</th>
+      <th>Pos Size</th>
+      <th (click)="setSort('plPct')">%P/L</th>
+      <th>P/L</th>
+      <th (click)="setSort('holdingPeriodDays')">Hold (d)</th>
+      <th (click)="setSort('plPctDaily')">%Day</th>
+      <th (click)="setSort('plPctWeekly')">%Week</th>
+      <th (click)="setSort('plPctMonthly')">%Month</th>
+      <th>Status</th>
+      <th (click)="setSort('updatedAt')">Updated
+        <span *ngIf="sortKey()==='updatedAt'">{{ sortDir()==='asc' ? '↑' : '↓' }}</span>
+      </th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <ng-container *ngFor="let r of rows()">
+      <tr class="row" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
+        <td>
+          <!-- ✅ Chart icon + symbol -->
+          <div class="symbolCell">
+            <button
+              type="button"
+              class="chartIcon"
+              title="Open chart"
+              aria-label="Open chart for {{ r.tradingsymbol }}"
+              (click)="openChart(r.tradingsymbol); $event.stopPropagation()">
+              📈
+            </button>
+
+            <div class="symbolBlock">
+              <div class="symbol">{{ r.tradingsymbol }}</div>
+              <div class="muted">{{ r.exchange }}</div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <div class="thesis">{{ r.thesisTitle || '—' }}</div>
+          <div class="muted">{{ r.strategyTag || '—' }} • {{ r.timeframe || '—' }}</div>
+
           <div class="muted small">
             {{ r.openedAt ? (r.openedAt | date:'dd-MMM') : '—' }}
             -
@@ -96,116 +112,108 @@
               {{ r.closedAt ? (r.closedAt | date:'dd-MMM') : '—' }}
             </ng-container>
             <ng-template #openRange>
-              <!-- open: show nothing after dash (as requested) -->
               <span class="muted"> </span>
             </ng-template>
           </div>
-          </td>
-          <td>{{ r.targetDeltaPct ?? null | number:'1.2-2' }}<span *ngIf="r.targetDeltaPct != null">%</span><span *ngIf="r.targetDeltaPct == null">—</span></td>
-          <td>{{ r.targetPrice ?? '—' }}</td>
 
-          <td>{{ (r.positionSize ?? 0) ? (r.positionSize | currency:'INR':'symbol':'1.0-0') : '—' }}</td>
+          <!-- ✅ Snapshot inline (no Details expand) -->
+          <div class="muted small">LTP: {{ r.ltp ?? '—' }} ({{ r.ltpDate || '—' }})</div>
+          <div class="muted small">Qty: {{ r.qty ?? '—' }}</div>
+          <div class="muted small">Avg Buy: {{ r.avgBuyPrice ?? '—' }}</div>
+        </td>
 
-          <td>{{ r.plPct ?? null | number:'1.2-2' }}<span *ngIf="r.plPct != null">%</span><span *ngIf="r.plPct == null">—</span></td>
-          <td>{{ (r.pl ?? 0) ? (r.pl | currency:'INR':'symbol':'1.0-0') : '—' }}</td>
+        <td>
+          {{ r.targetDeltaPct ?? null | number:'1.2-2' }}
+          <span *ngIf="r.targetDeltaPct != null">%</span><span *ngIf="r.targetDeltaPct == null">—</span>
+        </td>
+        <td>{{ r.targetPrice ?? '—' }}</td>
 
-          <td>{{ r.holdingPeriodDays ?? '—' }}</td>
+        <td>{{ (r.positionSize ?? 0) ? (r.positionSize | currency:'INR':'symbol':'1.0-0') : '—' }}</td>
 
-          <td>{{ r.plPctDaily ?? null | number:'1.2-2' }}<span *ngIf="r.plPctDaily != null">%</span><span *ngIf="r.plPctDaily == null">—</span></td>
-          <td>{{ r.plPctWeekly ?? null | number:'1.2-2' }}<span *ngIf="r.plPctWeekly != null">%</span><span *ngIf="r.plPctWeekly == null">—</span></td>
-          <td>{{ r.plPctMonthly ?? null | number:'1.2-2' }}<span *ngIf="r.plPctMonthly != null">%</span><span *ngIf="r.plPctMonthly == null">—</span></td>
+        <td>
+          {{ r.plPct ?? null | number:'1.2-2' }}
+          <span *ngIf="r.plPct != null">%</span><span *ngIf="r.plPct == null">—</span>
+        </td>
+        <td>{{ (r.pl ?? 0) ? (r.pl | currency:'INR':'symbol':'1.0-0') : '—' }}</td>
 
-          <td>
-            <span class="pill" [class.open]="r.status==='OPEN'" [class.closed]="r.status==='CLOSED'">
-              {{ r.status }}
-            </span>
-          </td>
+        <td>{{ r.holdingPeriodDays ?? '—' }}</td>
 
-          <td>{{ r.updatedAt ? (r.updatedAt | date:'dd-MMM HH:mm') : '—' }}</td>
+        <td>
+          {{ r.plPctDaily ?? null | number:'1.2-2' }}
+          <span *ngIf="r.plPctDaily != null">%</span><span *ngIf="r.plPctDaily == null">—</span>
+        </td>
+        <td>
+          {{ r.plPctWeekly ?? null | number:'1.2-2' }}
+          <span *ngIf="r.plPctWeekly != null">%</span><span *ngIf="r.plPctWeekly == null">—</span>
+        </td>
+        <td>
+          {{ r.plPctMonthly ?? null | number:'1.2-2' }}
+          <span *ngIf="r.plPctMonthly != null">%</span><span *ngIf="r.plPctMonthly == null">—</span>
+        </td>
 
-          <td>
-            <button class="btn" (click)="toggleExpand(r.id)">
-              {{ expanded().has(r.id) ? 'Hide' : 'Details' }}
-            </button>
-          </td>
-        </tr>
+        <td>
+          <span class="pill" [class.open]="r.status==='OPEN'" [class.closed]="r.status==='CLOSED'">
+            {{ r.status }}
+          </span>
+        </td>
 
-        <tr *ngIf="expanded().has(r.id)" class="details">
-          <td colspan="14">
-            <div class="detailsGrid">
-              <div class="panel">
-                <div class="panelTitle">Notes</div>
-                <div class="panelBody">
-                  <div class="mutedLabel">Thesis</div>
-                  <div class="text">{{ r.thesisNotes || '—' }}</div>
-                  <div class="mutedLabel">Risk</div>
-                  <div class="text">{{ r.riskNotes || '—' }}</div>
-                </div>
-              </div>
+        <td>{{ r.updatedAt ? (r.updatedAt | date:'dd-MMM HH:mm') : '—' }}</td>
+      </tr>
+    </ng-container>
+    </tbody>
+  </table>
+</div>
 
-              <div class="panel">
-                <div class="panelTitle">Snapshot</div>
-                <div class="panelBody">
-                  <div class="muted">LTP: {{ r.ltp ?? '—' }} ({{ r.ltpDate || '—' }})</div>
-                  <div class="muted">Qty: {{ r.qty ?? '—' }}</div>
-                  <div class="muted">Avg Buy: {{ r.avgBuyPrice ?? '—' }}</div>
-                </div>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </ng-container>
-      </tbody>
-    </table>
-  </div>
+<!-- Mobile cards -->
+<div *ngIf="isMobile()" class="cards">
+  <div class="card" *ngFor="let r of rows()" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
+    <div class="cardTop">
+      <div>
+        <!-- ✅ Chart icon next to symbol (mobile) -->
+        <div class="symbolRow">
+          <button
+            type="button"
+            class="chartIcon"
+            title="Open chart"
+            aria-label="Open chart for {{ r.tradingsymbol }}"
+            (click)="openChart(r.tradingsymbol); $event.stopPropagation()">
+            📈
+          </button>
 
-  <!-- Mobile cards -->
-  <div *ngIf="isMobile()" class="cards">
-    <div class="card" *ngFor="let r of rows()" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
-      <div class="cardTop">
-        <div>
           <div class="symbol">{{ r.tradingsymbol }}</div>
-          <div class="muted">
-            {{ r.exchange }} • {{ r.strategyTag || '—' }} • {{ r.timeframe || '—' }}
-            </div>
-
-            <div class="muted small">
-            {{ r.openedAt ? (r.openedAt | date:'dd-MMM') : '—' }}
-            -
-            <ng-container *ngIf="r.status === 'CLOSED'; else openRangeM">
-              {{ r.closedAt ? (r.closedAt | date:'dd-MMM') : '—' }}
-            </ng-container>
-            <ng-template #openRangeM><span class="muted"> </span></ng-template>
-            </div>
         </div>
-        <span class="pill" [class.open]="r.status==='OPEN'" [class.closed]="r.status==='CLOSED'">
-          {{ r.status }}
-        </span>
+
+        <div class="muted">
+          {{ r.exchange }} • {{ r.strategyTag || '—' }} • {{ r.timeframe || '—' }}
+        </div>
+
+        <div class="muted small">
+          {{ r.openedAt ? (r.openedAt | date:'dd-MMM') : '—' }}
+          -
+          <ng-container *ngIf="r.status === 'CLOSED'; else openRangeM">
+            {{ r.closedAt ? (r.closedAt | date:'dd-MMM') : '—' }}
+          </ng-container>
+          <ng-template #openRangeM><span class="muted"> </span></ng-template>
+        </div>
+
+        <!-- ✅ Snapshot inline (mobile) -->
+        <div class="muted">LTP: {{ r.ltp ?? '—' }} ({{ r.ltpDate || '—' }})</div>
+        <div class="muted">Qty: {{ r.qty ?? '—' }}</div>
+        <div class="muted">Avg Buy: {{ r.avgBuyPrice ?? '—' }}</div>
       </div>
 
-      <div class="kv">
-        <div><div class="k">%Target</div><div class="v">{{ r.targetDeltaPct == null ? '—' : (r.targetDeltaPct | number:'1.2-2') + '%' }}</div></div>
-        <div><div class="k">%P/L</div><div class="v">{{ r.plPct == null ? '—' : (r.plPct | number:'1.2-2') + '%' }}</div></div>
-        <div><div class="k">Hold (d)</div><div class="v">{{ r.holdingPeriodDays ?? '—' }}</div></div>
-        <div><div class="k">Size</div><div class="v">{{ r.positionSize ? (r.positionSize | currency:'INR':'symbol':'1.0-0') : '—' }}</div></div>
-      </div>
-
-      <div class="thesis">{{ r.thesisTitle || '—' }}</div>
-
-      <div class="cardActions">
-        <button class="btn" (click)="toggleExpand(r.id)">{{ expanded().has(r.id) ? 'Hide' : 'Details' }}</button>
-      </div>
-
-      <div class="mobileDetails" *ngIf="expanded().has(r.id)">
-        <div class="mutedLabel">Thesis</div>
-        <div class="text">{{ r.thesisNotes || '—' }}</div>
-        <div class="mutedLabel">Risk</div>
-        <div class="text">{{ r.riskNotes || '—' }}</div>
-
-        <div class="mutedLabel" style="margin-top:10px;">Perf</div>
-        <div class="muted">%Day: {{ r.plPctDaily == null ? '—' : (r.plPctDaily | number:'1.2-2') + '%' }}</div>
-        <div class="muted">%Week: {{ r.plPctWeekly == null ? '—' : (r.plPctWeekly | number:'1.2-2') + '%' }}</div>
-        <div class="muted">%Month: {{ r.plPctMonthly == null ? '—' : (r.plPctMonthly | number:'1.2-2') + '%' }}</div>
-      </div>
+      <span class="pill" [class.open]="r.status==='OPEN'" [class.closed]="r.status==='CLOSED'">
+        {{ r.status }}
+      </span>
     </div>
+
+    <div class="kv">
+      <div><div class="k">%Target</div><div class="v">{{ r.targetDeltaPct == null ? '—' : (r.targetDeltaPct | number:'1.2-2') + '%' }}</div></div>
+      <div><div class="k">%P/L</div><div class="v">{{ r.plPct == null ? '—' : (r.plPct | number:'1.2-2') + '%' }}</div></div>
+      <div><div class="k">Hold (d)</div><div class="v">{{ r.holdingPeriodDays ?? '—' }}</div></div>
+      <div><div class="k">Size</div><div class="v">{{ r.positionSize ? (r.positionSize | currency:'INR':'symbol':'1.0-0') : '—' }}</div></div>
+    </div>
+
+    <div class="thesis">{{ r.thesisTitle || '—' }}</div>
   </div>
+</div>

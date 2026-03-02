@@ -1,4 +1,4 @@
-<!-- returns.component.html (DROP-IN, no template casts) -->
+<!-- returns.component.html (DROP-IN) -->
 <div class="page">
   <div class="header">
     <div>
@@ -9,6 +9,15 @@
     </div>
 
     <div class="controls">
+      <!-- ✅ Symbol search (same pattern as Watchlist) -->
+      <input
+        class="search"
+        type="text"
+        placeholder="Search symbol…"
+        [value]="query()"
+        (input)="query.set(($any($event.target).value || ''))"
+      />
+
       <select [value]="filter()" (change)="onFilterChange($event)">
         <option value="ALL">All</option>
         <option value="PULLBACKS">Trend Continuation Pullbacks</option>

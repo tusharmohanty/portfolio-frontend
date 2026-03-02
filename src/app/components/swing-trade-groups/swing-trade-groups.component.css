@@ -81,3 +81,36 @@ td { padding:12px; border-bottom:1px solid #162233; vertical-align:top; }
 }
 
 .small { font-size: 12px; opacity: 0.85; }
+
+.symbolCell{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.symbolBlock{ min-width: 0; }
+
+.symbolRow{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chartIcon{
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.85;
+  line-height: 1;
+  font-size: 14px;
+  flex: 0 0 auto;
+}
+
+.chartIcon:hover{
+  opacity: 1;
+  text-decoration: underline;
+}

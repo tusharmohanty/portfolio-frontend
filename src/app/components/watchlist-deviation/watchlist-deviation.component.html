@@ -52,6 +52,14 @@
 
       <div class="left">
         <div class="symbolLine">
+        <button
+          type="button"
+          class="symSub chartBtn"
+          title="Open chart"
+          aria-label="Open chart for {{ r.symbol }}"
+          (click)="openChart(r.symbol); $event.stopPropagation()">
+          📈
+        </button>
           <div class="symbol">{{ r.symbol }}</div>
           <div class="date">{{ r.tradeDate }}</div>
         </div>

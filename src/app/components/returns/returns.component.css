@@ -6,18 +6,31 @@
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
 }
 
+/* =========================
+   Header
+   ========================= */
+
 .header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+  flex-wrap: wrap; /* ✅ allows controls to wrap */
 }
 
 .title { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
 .subtle { font-size: 12px; color: #9bb0c9; margin-top: 4px; }
 
-.controls { display: flex; align-items: center; gap: 10px; }
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;          /* ✅ allows search to show */
+  justify-content: flex-end;
+  row-gap: 8px;
+}
+
 .btn {
   background: #18202b;
   border: 1px solid #233042;
@@ -27,7 +40,26 @@
   font-weight: 600;
 }
 
+.search {
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: inherit;
+  outline: none;
+
+  min-width: 160px;   /* ✅ prevents collapse */
+  flex: 1 1 200px;    /* ✅ responsive */
+  max-width: 240px;
+}
+.search::placeholder { opacity: 0.7; }
+
 .toggle { display: flex; gap: 8px; align-items: center; color: #9bb0c9; font-size: 12px; }
+
+/* =========================
+   Card + table container
+   ========================= */
 
 .card {
   background: #0f151d;
@@ -38,104 +70,16 @@
 
 .table {
   width: 100%;
-  overflow-x: auto;
-}
-.row {
-  display: grid;
-  grid-template-columns: 1.6fr 0.6fr 0.6fr 0.6fr 0.9fr 0.7fr 0.7fr 0.6fr;
-  gap: 8px;
-  padding: 10px 10px;
-  border-top: 1px solid #17202c;
-  align-items: center;
+  overflow-x: hidden; /* ✅ hide scrollbar normally */
 }
 
-.row.head {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  background: #0f151d;
-  border-top: 0;
-  font-size: 12px;
-  color: #9bb0c9;
-  user-select: none;
-}
-
-.cell { font-size: 13px; }
-.cell.num { text-align: right; font-variant-numeric: tabular-nums; }
-.cell.sym { min-width: 0; }
-.cell.sig { text-align: center; }
-
-.row.head .cell { cursor: pointer; }
-.row.head .cell.sig { cursor: default; }
-.arrow { margin-left: 6px; opacity: 0.85; }
-
-.symMain { font-weight: 750; }
-.symSub { font-size: 11px; color: #9bb0c9; margin-top: 2px; }
-
-.pos { color: #8ff0a4; }
-.neg { color: #ff8b8b; }
-
-.pill {
-  display: inline-block;
-  padding: 5px 9px;
-  border-radius: 999px;
-  border: 1px solid #2a3a50;
-  background: #111a24;
-  font-size: 11px;
-  color: #9bb0c9;
-}
-.pill.on {
-  border-color: #2f6bff44;
-  background: #14223a;
-  color: #cfe0ff;
-}
-
-.badge {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: #18202b;
-  border: 1px solid #233042;
-  font-weight: 700;
-  font-size: 11px;
-}
-
-/* mobile tweaks */
-@media (max-width: 820px) {
-  .row {
-    grid-template-columns: 1.7fr 0.7fr 0.7fr 0.7fr 0.9fr 0.8fr 0.8fr 0.7fr;
-  }
-}
-
-.chartBtn {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  opacity: 0.85;
-}
-
-.chartBtn:hover { opacity: 1; text-decoration: underline; }
-
-
-.cell {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* --- Responsive / dynamic column compression --- */
-
-.table {
-  width: 100%;
-  overflow-x: hidden; /* ✅ hide scrollbar in normal cases */
-}
-
-/* If you *must* preserve scroll as a fallback on very small screens, change hidden -> auto */
 @media (max-width: 520px) {
-  .table { overflow-x: auto; }
+  .table { overflow-x: auto; } /* fallback on tiny screens */
 }
+
+/* =========================
+   Rows + cells
+   ========================= */
 
 .row {
   display: grid;
@@ -156,7 +100,82 @@
     minmax(72px, 0.70fr); /* Trend */
 }
 
-/* PULLBACKS mode baseline (wide screens) */
+.row.head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #0f151d;
+  border-top: 0;
+  font-size: 12px;
+  color: #9bb0c9;
+  user-select: none;
+}
+
+.cell {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0; /* ✅ important for CSS grid */
+}
+.cell.num { text-align: right; font-variant-numeric: tabular-nums; }
+.cell.sym { min-width: 0; }
+.cell.sig { text-align: center; }
+
+.row.head .cell { cursor: pointer; }
+.row.head .cell.sig { cursor: default; }
+.arrow { margin-left: 6px; opacity: 0.85; }
+
+.symMain { font-weight: 750; overflow: hidden; text-overflow: ellipsis; }
+.symSub { font-size: 11px; color: #9bb0c9; margin-top: 2px; }
+
+.pos { color: #8ff0a4; }
+.neg { color: #ff8b8b; }
+
+.badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #18202b;
+  border: 1px solid #233042;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 999px;
+  border: 1px solid #2a3a50;
+  background: #111a24;
+  font-size: 11px;
+  color: #9bb0c9;
+}
+.pill.on {
+  border-color: #2f6bff44;
+  background: #14223a;
+  color: #cfe0ff;
+}
+
+/* =========================
+   Chart button
+   ========================= */
+
+.chartBtn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.85;
+  font-size: 11px; /* reduce footprint */
+}
+.chartBtn:hover { opacity: 1; text-decoration: underline; }
+
+/* =========================
+   PULLBACKS mode grid
+   ========================= */
+
 .table.compact .row {
   grid-template-columns:
     minmax(90px, 1.25fr)  /* Symbol */
@@ -172,7 +191,10 @@
     minmax(82px, 0.78fr); /* Trend Stop */
 }
 
-/* --- Compression step 1: <= 1100px --- */
+/* =========================
+   Responsive compression
+   ========================= */
+
 @media (max-width: 1100px) {
   .row {
     gap: 6px;
@@ -203,7 +225,6 @@
   }
 }
 
-/* --- Compression step 2: <= 900px --- */
 @media (max-width: 900px) {
   .row {
     gap: 5px;
@@ -238,7 +259,6 @@
   .symSub { font-size: 10px; }
 }
 
-/* --- Compression step 3: <= 740px --- */
 @media (max-width: 740px) {
   .row {
     grid-template-columns:
@@ -268,18 +288,20 @@
   }
 }
 
-/* Tighten content so it doesn’t force overflow */
-.cell {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0; /* ✅ IMPORTANT for CSS grid overflow */
-}
+/* =========================
+   Mobile header layout
+   ========================= */
 
-.cell.sym { min-width: 0; }
-.symMain { overflow: hidden; text-overflow: ellipsis; }
-
-/* Reduce button footprint */
-.chartBtn {
-  font-size: 11px;
+@media (max-width: 820px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .controls {
+    justify-content: flex-start;
+  }
+  .search {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
 }

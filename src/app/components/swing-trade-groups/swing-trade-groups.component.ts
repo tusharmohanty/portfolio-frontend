@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SwingTradeService } from '../../services/swing-trade.service';
 import { SwingGroupPosition, SwingSortKey, SwingStatusFilter, SortDir } from '../../models/swing-group-position.model';
 import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-swing-trade-groups',
@@ -54,7 +55,10 @@ export class SwingTradeGroupsComponent {
     { key: 'holdingPeriodDays', label: 'Holding Period' },
   ];
 
-  constructor(private api: SwingTradeService, private http: HttpClient) {
+  constructor(private router: Router,
+              private route: ActivatedRoute,
+              private api: SwingTradeService, 
+              private http: HttpClient) {
     const mq = window.matchMedia('(max-width: 820px)');
     mq.addEventListener('change', e => this.isMobile.set(e.matches));
 
@@ -141,5 +145,14 @@ dateRangeLabel(g: any): string {
   if (!start) return '—';
   if (end) return `${fmt(start)} - ${fmt(end)}`;
   return `${fmt(start)} - Present`;
+}
+
+openChart(symbol: string) {
+  const sym = (symbol || '').trim().toUpperCase();
+  if (!sym) return;
+
+  this.router.navigate(['/returns/chart', sym], {
+    queryParams: { filter: 'ALL' } // keeps chart page consistent with returns
+  });
 }
 }

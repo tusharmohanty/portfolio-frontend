@@ -29,7 +29,7 @@ export class ReturnsComponent {
 
   sortKey = signal<SortKey>('weekPct');
   sortDir = signal<'asc' | 'desc'>('desc');
-
+  query = signal<string>('');
   trackBySymbol = (_: number, r: ReturnsRow) => r.symbol;
 
   serverSort = signal(false);
@@ -46,16 +46,22 @@ export class ReturnsComponent {
   showPullbackColumns = computed(() => this.filter() === 'PULLBACKS');
 
   viewRows = computed(() => {
-    const data = [...this.rows()];
+  const data = [...this.rows()];
+  const q = this.query().trim().toUpperCase();
 
-    // ✅ Pullbacks mode: keep server order (bucket_rank, delta_in_atr, volume_ratio_20)
-    if (this.filter() === 'PULLBACKS') return data;
+  // ✅ apply symbol filter first (works for ALL + PULLBACKS)
+  const filtered = !q
+    ? data
+    : data.filter(r => (r.symbol || '').toUpperCase().includes(q));
 
-    const key = this.sortKey();
-    const dir = this.sortDir();
-    data.sort((a, b) => this.compare(a, b, key, dir));
-    return data;
-  });
+  // ✅ Pullbacks mode: keep server order (bucket_rank, delta_in_atr, volume_ratio_20)
+  if (this.filter() === 'PULLBACKS') return filtered;
+
+  const key = this.sortKey();
+  const dir = this.sortDir();
+  filtered.sort((a, b) => this.compare(a, b, key, dir));
+  return filtered;
+});
 
   constructor(
     private api: StockReturnsService,

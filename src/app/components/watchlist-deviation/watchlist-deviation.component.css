@@ -147,17 +147,29 @@
 
 .symbolLine {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+  align-items: center;
+  gap: 6px;              /* small controlled spacing */
+  justify-content: flex-start;  /* prevent space-between */
 }
 
 .symbol {
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: 0.3px;
+  flex: 0 0 auto;        /* prevent stretching */
+  margin: 0;             /* remove auto margins */
 }
 
+.chartBtn {
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0.8;
+}
+
+.chartBtn:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
 .date {
   font-size: 11px;
   color: rgba(233, 238, 252, 0.5);
