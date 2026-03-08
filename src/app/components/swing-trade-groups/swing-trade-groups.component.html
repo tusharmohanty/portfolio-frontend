@@ -1,21 +1,25 @@
-<!-- swing-trade-groups.component.html (UPDATED - snapshot inline, no Details) -->
+<!-- swing-trade-groups.component.html (UPDATED - client-side sort/filter) -->
 
 <div class="topbar">
   <div>
     <div class="title">Swing Trade Groups</div>
   </div>
+
   <div class="controls">
+    <!-- Status filter (NO sort REST; optional REST reload on status change) -->
     <select [ngModel]="status()" (ngModelChange)="onStatusChange($event)">
       <option value="OPEN">OPEN</option>
       <option value="CLOSED">CLOSED</option>
       <option value="ALL">ALL</option>
     </select>
 
-    <select [ngModel]="sortKey()" (ngModelChange)="sortKey.set($event); load()">
+    <!-- Sort key (client-side only) -->
+    <select [ngModel]="sortKey()" (ngModelChange)="sortKey.set($event)">
       <option *ngFor="let o of sortOptions" [value]="o.key">{{ o.label }}</option>
     </select>
 
-    <button class="btn" (click)="sortDir.set(sortDir()==='asc' ? 'desc' : 'asc'); load()">
+    <!-- Sort dir (client-side only) -->
+    <button class="btn" type="button" (click)="toggleSortDir()">
       {{ sortDir() === 'asc' ? '↑' : '↓' }}
     </button>
   </div>
@@ -23,7 +27,7 @@
 
 <div class="muted" style="padding:8px 0;"></div>
 
-<!-- Aggregates (follow the filter) -->
+<!-- Aggregates (follow current filter selection) -->
 <div class="agg">
   <div class="agg-card">
     <div class="label">
@@ -60,30 +64,106 @@
 <div *ngIf="!isMobile()" class="tableWrap">
   <table class="table">
     <thead>
-    <tr>
-      <th>Symbol</th>
-      <th>Strategy</th>
-      <th (click)="setSort('targetDeltaPct')">%Target</th>
-      <th>Target</th>
-      <th>Pos Size</th>
-      <th (click)="setSort('plPct')">%P/L</th>
-      <th>P/L</th>
-      <th (click)="setSort('holdingPeriodDays')">Hold (d)</th>
-      <th (click)="setSort('plPctDaily')">%Day</th>
-      <th (click)="setSort('plPctWeekly')">%Week</th>
-      <th (click)="setSort('plPctMonthly')">%Month</th>
-      <th>Status</th>
-      <th (click)="setSort('updatedAt')">Updated
-        <span *ngIf="sortKey()==='updatedAt'">{{ sortDir()==='asc' ? '↑' : '↓' }}</span>
-      </th>
-    </tr>
-    </thead>
+<tr>
+  <th class="clickable">
+    <span class="thInner">Symbol</span>
+  </th>
+
+  <th class="clickable">
+    <span class="thInner">Strategy</span>
+  </th>
+
+  <th (click)="setSort('targetDeltaPct')" class="clickable sortable">
+    <span class="thInner">
+      %Target
+      <span class="sortMark" *ngIf="sortKey()==='targetDeltaPct'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th class="clickable">
+    <span class="thInner">Target</span>
+  </th>
+
+  <th (click)="setSort('positionSize')" class="clickable sortable">
+  <span class="thInner">
+    Pos Size
+    <span class="sortMark" *ngIf="sortKey()==='positionSize'">
+      {{ sortDir()==='asc' ? '↑' : '↓' }}
+    </span>
+  </span>
+  </th>
+
+  <th (click)="setSort('plPct')" class="clickable sortable">
+    <span class="thInner">
+      %P/L
+      <span class="sortMark" *ngIf="sortKey()==='plPct'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th (click)="setSort('pl')" class="clickable sortable">
+    <span class="thInner">
+      P/L
+      <span class="sortMark" *ngIf="sortKey()==='pl'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th (click)="setSort('holdingPeriodDays')" class="clickable sortable">
+    <span class="thInner">
+      Hold (d)
+      <span class="sortMark" *ngIf="sortKey()==='holdingPeriodDays'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th (click)="setSort('plPctDaily')" class="clickable sortable">
+    <span class="thInner">
+      %Day
+      <span class="sortMark" *ngIf="sortKey()==='plPctDaily'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th (click)="setSort('plPctWeekly')" class="clickable sortable">
+    <span class="thInner">
+      %Week
+      <span class="sortMark" *ngIf="sortKey()==='plPctWeekly'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th (click)="setSort('plPctMonthly')" class="clickable sortable">
+    <span class="thInner">
+      %Month
+      <span class="sortMark" *ngIf="sortKey()==='plPctMonthly'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+
+  <th (click)="setSort('updatedAt')" class="clickable sortable">
+    <span class="thInner">
+      Entry
+      <span class="sortMark" *ngIf="sortKey()==='updatedAt'">
+        {{ sortDir()==='asc' ? '↑' : '↓' }}
+      </span>
+    </span>
+  </th>
+</tr>
+</thead>
 
     <tbody>
-    <ng-container *ngFor="let r of rows()">
+    <ng-container *ngFor="let r of viewRows()">
       <tr class="row" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
         <td>
-          <!-- ✅ Chart icon + symbol -->
           <div class="symbolCell">
             <button
               type="button"
@@ -111,12 +191,9 @@
             <ng-container *ngIf="r.status === 'CLOSED'; else openRange">
               {{ r.closedAt ? (r.closedAt | date:'dd-MMM') : '—' }}
             </ng-container>
-            <ng-template #openRange>
-              <span class="muted"> </span>
-            </ng-template>
+            <ng-template #openRange><span class="muted"> </span></ng-template>
           </div>
 
-          <!-- ✅ Snapshot inline (no Details expand) -->
           <div class="muted small">LTP: {{ r.ltp ?? '—' }} ({{ r.ltpDate || '—' }})</div>
           <div class="muted small">Qty: {{ r.qty ?? '—' }}</div>
           <div class="muted small">Avg Buy: {{ r.avgBuyPrice ?? '—' }}</div>
@@ -126,6 +203,7 @@
           {{ r.targetDeltaPct ?? null | number:'1.2-2' }}
           <span *ngIf="r.targetDeltaPct != null">%</span><span *ngIf="r.targetDeltaPct == null">—</span>
         </td>
+
         <td>{{ r.targetPrice ?? '—' }}</td>
 
         <td>{{ (r.positionSize ?? 0) ? (r.positionSize | currency:'INR':'symbol':'1.0-0') : '—' }}</td>
@@ -134,30 +212,29 @@
           {{ r.plPct ?? null | number:'1.2-2' }}
           <span *ngIf="r.plPct != null">%</span><span *ngIf="r.plPct == null">—</span>
         </td>
+
         <td>{{ (r.pl ?? 0) ? (r.pl | currency:'INR':'symbol':'1.0-0') : '—' }}</td>
 
-        <td>{{ r.holdingPeriodDays ?? '—' }}</td>
+        <td>
+          {{ r.holdingPeriodDays == null ? '—' : (r.holdingPeriodDays | number:'1.0-0') }}
+        </td>
 
         <td>
           {{ r.plPctDaily ?? null | number:'1.2-2' }}
           <span *ngIf="r.plPctDaily != null">%</span><span *ngIf="r.plPctDaily == null">—</span>
         </td>
+
         <td>
           {{ r.plPctWeekly ?? null | number:'1.2-2' }}
           <span *ngIf="r.plPctWeekly != null">%</span><span *ngIf="r.plPctWeekly == null">—</span>
         </td>
+
         <td>
           {{ r.plPctMonthly ?? null | number:'1.2-2' }}
           <span *ngIf="r.plPctMonthly != null">%</span><span *ngIf="r.plPctMonthly == null">—</span>
         </td>
 
-        <td>
-          <span class="pill" [class.open]="r.status==='OPEN'" [class.closed]="r.status==='CLOSED'">
-            {{ r.status }}
-          </span>
-        </td>
-
-        <td>{{ r.updatedAt ? (r.updatedAt | date:'dd-MMM HH:mm') : '—' }}</td>
+        <td>{{ r.openedAt ? (r.openedAt | date:'dd-MMM HH:mm') : '—' }}</td>
       </tr>
     </ng-container>
     </tbody>
@@ -166,10 +243,9 @@
 
 <!-- Mobile cards -->
 <div *ngIf="isMobile()" class="cards">
-  <div class="card" *ngFor="let r of rows()" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
+  <div class="card" *ngFor="let r of viewRows()" [class.pos]="plClass(r)==='pos'" [class.neg]="plClass(r)==='neg'">
     <div class="cardTop">
       <div>
-        <!-- ✅ Chart icon next to symbol (mobile) -->
         <div class="symbolRow">
           <button
             type="button"
@@ -179,7 +255,6 @@
             (click)="openChart(r.tradingsymbol); $event.stopPropagation()">
             📈
           </button>
-
           <div class="symbol">{{ r.tradingsymbol }}</div>
         </div>
 
@@ -196,21 +271,21 @@
           <ng-template #openRangeM><span class="muted"> </span></ng-template>
         </div>
 
-        <!-- ✅ Snapshot inline (mobile) -->
         <div class="muted">LTP: {{ r.ltp ?? '—' }} ({{ r.ltpDate || '—' }})</div>
         <div class="muted">Qty: {{ r.qty ?? '—' }}</div>
         <div class="muted">Avg Buy: {{ r.avgBuyPrice ?? '—' }}</div>
       </div>
-
-      <span class="pill" [class.open]="r.status==='OPEN'" [class.closed]="r.status==='CLOSED'">
-        {{ r.status }}
-      </span>
     </div>
 
     <div class="kv">
       <div><div class="k">%Target</div><div class="v">{{ r.targetDeltaPct == null ? '—' : (r.targetDeltaPct | number:'1.2-2') + '%' }}</div></div>
       <div><div class="k">%P/L</div><div class="v">{{ r.plPct == null ? '—' : (r.plPct | number:'1.2-2') + '%' }}</div></div>
-      <div><div class="k">Hold (d)</div><div class="v">{{ r.holdingPeriodDays ?? '—' }}</div></div>
+      <div>
+        <div class="k">Hold (d)</div>
+        <div class="v">
+          {{ r.holdingPeriodDays == null ? '—' : (r.holdingPeriodDays | number:'1.0-0') }}
+        </div>
+        </div>
       <div><div class="k">Size</div><div class="v">{{ r.positionSize ? (r.positionSize | currency:'INR':'symbol':'1.0-0') : '—' }}</div></div>
     </div>
 

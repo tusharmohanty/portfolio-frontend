@@ -1,21 +1,63 @@
-.page{
-  min-height: 100vh;
+.page {
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #0b0f14;
-  color: #e6edf3;
+  min-height: 0;
+  overflow: hidden;
+  background: #0a0a0a;
 }
 
+/* Header */
 .header{
   display:flex;
   align-items:center;
   justify-content:space-between;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  transition:
+    padding 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.brandTitle{ font-size: 16px; font-weight: 700; letter-spacing: 0.3px; }
-.brandSub{ font-size: 12px; opacity: 0.7; margin-top: 2px; }
+.page.scrolled .header {
+  padding: 10px 16px;
+  background: rgba(10, 10, 10, 0.94);
+  border-bottom-color: rgba(255,255,255,0.12);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+}
+
+.brand {
+  transition: transform 180ms ease;
+}
+
+.page.scrolled .brand {
+  transform: translateY(-1px);
+}
+
+.brandTitle{
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  transition: font-size 180ms ease;
+}
+
+.page.scrolled .brandTitle{
+  font-size: 14px;
+}
+
+.brandSub{
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+  transition: font-size 180ms ease, opacity 180ms ease;
+}
+
+.page.scrolled .brandSub{
+  font-size: 11px;
+  opacity: 0.6;
+}
 
 .btn{
   border: 1px solid rgba(255,255,255,0.16);
@@ -24,16 +66,44 @@
   padding: 8px 12px;
   border-radius: 10px;
   cursor: pointer;
+  transition:
+    padding 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
 }
+
+.page.scrolled .btn{
+  padding: 7px 10px;
+}
+
 .loginBtn.logged{
   border-color: rgba(0,255,160,0.35);
 }
 
+.headerActions{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+}
+
+/* Tabs */
 .tabs{
   display:flex;
   gap: 8px;
   padding: 10px 12px;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex: 0 0 auto;
+  transition:
+    padding 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.page.scrolled .tabs{
+  padding: 7px 12px;
+  background: rgba(10, 10, 10, 0.96);
+  border-bottom-color: rgba(255,255,255,0.12);
 }
 
 .tab{
@@ -43,22 +113,32 @@
   border-radius: 12px;
   border: 1px solid transparent;
   opacity: 0.85;
+  transition:
+    padding 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    opacity 180ms ease,
+    transform 180ms ease;
 }
+
+.page.scrolled .tab{
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
 .tab.active{
   opacity: 1;
   border-color: rgba(255,255,255,0.18);
   background: rgba(255,255,255,0.06);
 }
 
-.content{
-  flex: 1;
-  padding: 14px 12px;
-}
-
-.headerActions{
-  display:flex;
-  align-items:center;
-  gap: 10px;
+/* Content */
+.content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 /* Menu dropdown */
@@ -115,7 +195,26 @@
   font-size: 12px;
   opacity: .95;
 }
+
 .syncBanner.err{
   border-color: rgba(255,90,90,0.25);
   background: rgba(255,90,90,0.10);
+}
+
+/* Optional slim scrollbar for terminal look */
+.content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.14);
+  border-radius: 8px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.22);
 }

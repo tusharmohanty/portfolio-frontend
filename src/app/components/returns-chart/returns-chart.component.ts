@@ -5,11 +5,12 @@ import {
   ViewChild,
   ElementRef,
   signal,
-  HostListener, 
-  AfterViewInit
+  HostListener
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, Location } from '@angular/common';
+import { forkJoin } from 'rxjs';
+
 import { MarketChartService } from '../../services/market-chart.service';
 import { MarketChartResponse } from '../../models/market-chart';
 
@@ -18,10 +19,33 @@ import {
   IChartApi,
   LineData,
   HistogramData,
+  CandlestickData,
   Time,
   LineSeries,
   HistogramSeries,
+  CandlestickSeries,
 } from 'lightweight-charts';
+
+type CombinedChartData = {
+  symbol: string;
+  daily: MarketChartResponse;
+  weekly: MarketChartResponse;
+};
+
+type PriceMode = 'LINE' | 'CANDLE';
+
+type CandlePoint = {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+};
+
+type LinePoint = {
+  date: string;
+  value: number;
+};
 
 @Component({
   selector: 'app-returns-chart',
@@ -33,12 +57,17 @@ import {
 export class ReturnsChartComponent implements OnInit, OnDestroy {
   symbol = signal<string>('');
   loading = signal(false);
-  chart = signal<MarketChartResponse | null>(null);
+  chart = signal<CombinedChartData | null>(null);
 
-  // ✅ Single combined Price+Volume chart
+  dailyMode = signal<PriceMode>('CANDLE');
+  weeklyMode = signal<PriceMode>('LINE');
+
+  crosshairDate = signal<string | null>(null);
+  dailyOhlcText = signal<string | null>(null);
+  weeklyOhlcText = signal<string | null>(null);
+
   @ViewChild('priceEl', { static: false }) priceEl?: ElementRef<HTMLDivElement>;
   @ViewChild('indMenu', { static: false }) indMenu?: ElementRef<HTMLDetailsElement>;
-  // Optional panes
   @ViewChild('rsiEl', { static: false }) rsiEl?: ElementRef<HTMLDivElement>;
   @ViewChild('macdEl', { static: false }) macdEl?: ElementRef<HTMLDivElement>;
 
@@ -48,24 +77,35 @@ export class ReturnsChartComponent implements OnInit, OnDestroy {
 
   private resizeObs?: ResizeObserver;
 
-  // Indicator toggles (RSI/MACD hidden by default)
   showEma20 = signal(true);
   showEma50 = signal(true);
   showEma200 = signal(true);
   showRsi = signal(false);
   showMacd = signal(false);
 
-  // series handles (so we can toggle visibility without re-fetch)
+  private dailyLineSeries?: any;
+  private dailyCandleSeries?: any;
+  private weeklyLineSeries?: any;
+  private weeklyCandleSeries?: any;
+
+  private dailyVolumeSeries?: any;
+  private weeklyVolumeSeries?: any;
+
   private ema20Series?: any;
   private ema50Series?: any;
   private ema200Series?: any;
-
-  private volSeries?: any;
 
   private rsiSeries?: any;
   private macdSeries?: any;
   private macdSignalSeries?: any;
   private macdHistSeries?: any;
+
+  private _fromUrl: string | null = null;
+
+  private dailyLineMap = new Map<string, LinePoint>();
+  private weeklyLineMap = new Map<string, LinePoint>();
+  private dailyCandleMap = new Map<string, CandlePoint>();
+  private weeklyCandleMap = new Map<string, CandlePoint>();
 
   constructor(
     private route: ActivatedRoute,
@@ -75,47 +115,61 @@ export class ReturnsChartComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-  const sym = this.route.snapshot.paramMap.get('symbol');
-  if (!sym) return;
+    const sym = this.route.snapshot.paramMap.get('symbol');
+    if (!sym) return;
 
-  const symbol = sym.toUpperCase();
-  this.symbol.set(symbol);
+    const symbol = sym.toUpperCase();
+    this.symbol.set(symbol);
 
-  // ✅ remember originating URL (passed by caller)
-  // example: /watchlist/deviation?sort=... or /swing/groups?status=OPEN
-  const from = this.route.snapshot.queryParamMap.get('from');
-
-  // store it in a simple field OR signal (either is fine)
-  // using a private field here:
-  this._fromUrl = from;
-
-  this.load(symbol);
-}
-
-// ✅ keep this field inside the class
-private _fromUrl: string | null = null;
-
-back() {
-  // ✅ If we have an explicit origin, go back there
-  if (this._fromUrl) {
-    this.router.navigateByUrl(this._fromUrl);
-    return;
+    this._fromUrl = this.route.snapshot.queryParamMap.get('from');
+    this.load(symbol);
   }
 
-  // ✅ Fallback: behave like browser back
-  this.location.back();
-}
+  chartReady() {
+    const c = this.chart();
+    return !!c && ((c.daily?.bars?.length ?? 0) > 0 || (c.weekly?.bars?.length ?? 0) > 0);
+  }
+
+  back() {
+    if (this._fromUrl) {
+      this.router.navigateByUrl(this._fromUrl);
+      return;
+    }
+    this.location.back();
+  }
+
+  setDailyMode(mode: PriceMode) {
+    if (this.dailyMode() === mode) return;
+    this.dailyMode.set(mode);
+
+    const data = this.chart();
+    if (data) queueMicrotask(() => this.render(data));
+  }
+
+  setWeeklyMode(mode: PriceMode) {
+    if (this.weeklyMode() === mode) return;
+    this.weeklyMode.set(mode);
+
+    const data = this.chart();
+    if (data) queueMicrotask(() => this.render(data));
+  }
 
   ngOnDestroy() {
     this.destroyCharts();
     this.resizeObs?.disconnect();
   }
+
   private load(symbol: string) {
     this.loading.set(true);
-    this.chartApi.getChart(symbol).subscribe({
-      next: (res) => {
-        this.chart.set(res);
-        queueMicrotask(() => this.render(res));
+
+    forkJoin({
+      daily: this.chartApi.getDailyChart(symbol),
+      weekly: this.chartApi.getWeeklyChart(symbol),
+    }).subscribe({
+      next: ({ daily, weekly }) => {
+        const combined: CombinedChartData = { symbol, daily, weekly };
+        this.chart.set(combined);
+        queueMicrotask(() => this.render(combined));
       },
       error: (err) => {
         console.error('chart API error:', err);
@@ -126,41 +180,111 @@ back() {
     });
   }
 
-  private render(res: MarketChartResponse) {
-    // Price chart container is required. RSI/MACD panes are optional.
+  private render(res: CombinedChartData) {
     if (!this.priceEl?.nativeElement) return;
 
     this.destroyCharts();
 
-    // Build time-series arrays
-    const close: LineData[] = [];
+    this.dailyLineMap.clear();
+    this.weeklyLineMap.clear();
+    this.dailyCandleMap.clear();
+    this.weeklyCandleMap.clear();
+
+    const dailyClose: LineData[] = [];
+    const weeklyClose: LineData[] = [];
+
+    const dailyCandles: CandlestickData[] = [];
+    const weeklyCandles: CandlestickData[] = [];
+
+    const dailyVolume: HistogramData[] = [];
+    const weeklyVolume: HistogramData[] = [];
+
     const ema20: LineData[] = [];
     const ema50: LineData[] = [];
     const ema200: LineData[] = [];
-    const volume: HistogramData[] = [];
     const rsi: LineData[] = [];
     const macd: LineData[] = [];
     const macdSignal: LineData[] = [];
     const macdHist: HistogramData[] = [];
 
-    for (const b of res.bars ?? []) {
-      const t = b.date as unknown as Time; // YYYY-MM-DD works as Time
+    let hasDailyOhlc = false;
+    let hasWeeklyOhlc = false;
 
-      if (b.close != null) close.push({ time: t, value: b.close });
-      if (b.ema20 != null) ema20.push({ time: t, value: b.ema20 });
-      if (b.ema50 != null) ema50.push({ time: t, value: b.ema50 });
-      if (b.ema200 != null) ema200.push({ time: t, value: b.ema200 });
+    for (const b of (res.daily?.bars as any[]) ?? []) {
+      const t = b.date as unknown as Time;
+      const date = String(b.date);
 
-      if (b.volume != null) volume.push({ time: t, value: b.volume });
+      if (b.close != null) {
+        const close = Number(b.close);
+        dailyClose.push({ time: t, value: close });
+        this.dailyLineMap.set(date, { date, value: close });
+      }
 
-      if (b.rsi14 != null) rsi.push({ time: t, value: b.rsi14 });
+      if (b.volume != null) dailyVolume.push({ time: t, value: Number(b.volume) });
 
-      if (b.macd != null) macd.push({ time: t, value: b.macd });
-      if (b.macdSignal != null) macdSignal.push({ time: t, value: b.macdSignal });
-      if (b.macdHist != null) macdHist.push({ time: t, value: b.macdHist });
+      if (b.open != null && b.high != null && b.low != null && b.close != null) {
+        hasDailyOhlc = true;
+        const cp: CandlePoint = {
+          date,
+          open: Number(b.open),
+          high: Number(b.high),
+          low: Number(b.low),
+          close: Number(b.close),
+        };
+        dailyCandles.push({
+          time: t,
+          open: cp.open,
+          high: cp.high,
+          low: cp.low,
+          close: cp.close,
+        });
+        this.dailyCandleMap.set(date, cp);
+      }
+
+      if (b.ema20 != null) ema20.push({ time: t, value: Number(b.ema20) });
+      if (b.ema50 != null) ema50.push({ time: t, value: Number(b.ema50) });
+      if (b.ema200 != null) ema200.push({ time: t, value: Number(b.ema200) });
+
+      if (b.rsi14 != null) rsi.push({ time: t, value: Number(b.rsi14) });
+
+      if (b.macd != null) macd.push({ time: t, value: Number(b.macd) });
+      if (b.macdSignal != null) macdSignal.push({ time: t, value: Number(b.macdSignal) });
+      if (b.macdHist != null) macdHist.push({ time: t, value: Number(b.macdHist) });
     }
 
-    const mkChart = (el: HTMLDivElement) => {
+    for (const b of (res.weekly?.bars as any[]) ?? []) {
+      const t = b.date as unknown as Time;
+      const date = String(b.date);
+
+      if (b.close != null) {
+        const close = Number(b.close);
+        weeklyClose.push({ time: t, value: close });
+        this.weeklyLineMap.set(date, { date, value: close });
+      }
+
+      if (b.volume != null) weeklyVolume.push({ time: t, value: Number(b.volume) });
+
+      if (b.open != null && b.high != null && b.low != null && b.close != null) {
+        hasWeeklyOhlc = true;
+        const cp: CandlePoint = {
+          date,
+          open: Number(b.open),
+          high: Number(b.high),
+          low: Number(b.low),
+          close: Number(b.close),
+        };
+        weeklyCandles.push({
+          time: t,
+          open: cp.open,
+          high: cp.high,
+          low: cp.low,
+          close: cp.close,
+        });
+        this.weeklyCandleMap.set(date, cp);
+      }
+    }
+
+    const mkMainChart = (el: HTMLDivElement) => {
       const rect = el.getBoundingClientRect();
       const w = Math.max(10, Math.floor(rect.width || el.clientWidth || 600));
       const h = Math.max(10, Math.floor(rect.height || el.clientHeight || 200));
@@ -176,43 +300,160 @@ back() {
           vertLines: { color: 'rgba(148,163,184,0.15)' },
           horzLines: { color: 'rgba(148,163,184,0.15)' },
         },
-
-        // ✅ Two Y scales: right for price, left for volume
-        rightPriceScale: { visible: true, borderVisible: false },
+        rightPriceScale: {
+          visible: true,
+          borderVisible: false,
+          autoScale: true,
+          scaleMargins: {
+            top: 0.02,
+            bottom: 0.30,
+          },
+        },
         leftPriceScale: {
           visible: true,
           borderVisible: false,
-          // Keep volume visually in the lower band of the same pane
-          scaleMargins: { top: 0.75, bottom: 0.02 },
+          autoScale: true,
+          scaleMargins: {
+            top: 0.75,
+            bottom: 0.02,
+          },
         },
-
         timeScale: {
           borderVisible: false,
           fixRightEdge: true,
-          fixLeftEdge: true,          // prevents “empty time” before first bar
-          rightOffsetPixels: 40,      // small breathing room on right
+          fixLeftEdge: true,
+          rightOffsetPixels: 20,
         },
-
         crosshair: { mode: 1 },
+        handleScroll: {
+          mouseWheel: true,
+          pressedMouseMove: true,
+          horzTouchDrag: true,
+          vertTouchDrag: false,
+        },
+        handleScale: {
+          axisPressedMouseMove: {
+            time: true,
+            price: false,
+          },
+          mouseWheel: true,
+          pinch: true,
+        }
       });
     };
 
-    // Create charts
-    this.priceChart = mkChart(this.priceEl.nativeElement);
+    const mkIndicatorChart = (el: HTMLDivElement) => {
+      const rect = el.getBoundingClientRect();
+      const w = Math.max(10, Math.floor(rect.width || el.clientWidth || 600));
+      const h = Math.max(10, Math.floor(rect.height || el.clientHeight || 160));
+
+      return createChart(el, {
+        width: w,
+        height: h,
+        layout: {
+          background: { color: '#0b1220' },
+          textColor: '#cbd5e1',
+        },
+        grid: {
+          vertLines: { color: 'rgba(148,163,184,0.15)' },
+          horzLines: { color: 'rgba(148,163,184,0.15)' },
+        },
+        rightPriceScale: {
+          visible: true,
+          borderVisible: false,
+          autoScale: true,
+        },
+        leftPriceScale: {
+          visible: false,
+          borderVisible: false,
+        },
+        timeScale: {
+          borderVisible: false,
+          fixRightEdge: true,
+          fixLeftEdge: true,
+          rightOffsetPixels: 20,
+        },
+        crosshair: { mode: 1 },
+        handleScroll: {
+          mouseWheel: true,
+          pressedMouseMove: true,
+          horzTouchDrag: true,
+          vertTouchDrag: false,
+        },
+        handleScale: {
+          axisPressedMouseMove: {
+            time: true,
+            price: false,
+          },
+          mouseWheel: true,
+          pinch: true,
+        }
+      });
+    };
+
+    this.priceChart = mkMainChart(this.priceEl.nativeElement);
 
     if (this.showRsi() && this.rsiEl?.nativeElement) {
-      this.rsiChart = mkChart(this.rsiEl.nativeElement);
-    }
-    if (this.showMacd() && this.macdEl?.nativeElement) {
-      this.macdChart = mkChart(this.macdEl.nativeElement);
+      this.rsiChart = mkIndicatorChart(this.rsiEl.nativeElement);
     }
 
-    // --- Price series (RIGHT scale by default) ---
-    const closeSeries = this.priceChart.addSeries(LineSeries, {
-      lineWidth: 2,
-      color: '#e5e7eb', // close
+    if (this.showMacd() && this.macdEl?.nativeElement) {
+      this.macdChart = mkIndicatorChart(this.macdEl.nativeElement);
+    }
+
+    this.dailyVolumeSeries = this.priceChart.addSeries(HistogramSeries, {
+      priceScaleId: 'left',
+      color: 'rgba(96, 125, 139, 0.28)',
+      priceFormat: { type: 'volume' },
     });
-    closeSeries.setData(close);
+    this.dailyVolumeSeries.setData(dailyVolume);
+
+    this.weeklyVolumeSeries = this.priceChart.addSeries(HistogramSeries, {
+      priceScaleId: 'left',
+      color: 'rgba(56, 189, 248, 0.55)',
+      priceFormat: { type: 'volume' },
+    });
+    this.weeklyVolumeSeries.setData(weeklyVolume);
+
+    if (this.dailyMode() === 'CANDLE' && hasDailyOhlc) {
+      this.dailyCandleSeries = this.priceChart.addSeries(CandlestickSeries, {
+        upColor: '#22c55e',
+        downColor: '#ef4444',
+        borderVisible: true,
+        wickVisible: true,
+        borderUpColor: '#22c55e',
+        borderDownColor: '#ef4444',
+        wickUpColor: '#22c55e',
+        wickDownColor: '#ef4444',
+      });
+      this.dailyCandleSeries.setData(dailyCandles);
+    } else {
+      this.dailyLineSeries = this.priceChart.addSeries(LineSeries, {
+        lineWidth: 2,
+        color: '#e5e7eb',
+      });
+      this.dailyLineSeries.setData(dailyClose);
+    }
+
+    if (this.weeklyMode() === 'CANDLE' && hasWeeklyOhlc) {
+      this.weeklyCandleSeries = this.priceChart.addSeries(CandlestickSeries, {
+        upColor: '#60a5fa',
+        downColor: '#1d4ed8',
+        borderVisible: true,
+        wickVisible: true,
+        borderUpColor: '#60a5fa',
+        borderDownColor: '#1d4ed8',
+        wickUpColor: '#60a5fa',
+        wickDownColor: '#1d4ed8',
+      });
+      this.weeklyCandleSeries.setData(weeklyCandles);
+    } else {
+      this.weeklyLineSeries = this.priceChart.addSeries(LineSeries, {
+        lineWidth: 2,
+        color: '#38bdf8',
+      });
+      this.weeklyLineSeries.setData(weeklyClose);
+    }
 
     this.ema20Series = this.priceChart.addSeries(LineSeries, {
       lineWidth: 1,
@@ -235,15 +476,6 @@ back() {
     });
     this.ema200Series.setData(ema200);
 
-    // --- Volume series (LEFT scale) in SAME chart ---
-    this.volSeries = this.priceChart.addSeries(HistogramSeries, {
-      priceScaleId: 'left', // ✅ attach to left Y-axis
-      color: '#607d8b',
-      priceFormat: { type: 'volume' },
-    });
-    this.volSeries.setData(volume);
-
-    // --- RSI (optional pane) ---
     if (this.rsiChart) {
       this.rsiSeries = this.rsiChart.addSeries(LineSeries, {
         lineWidth: 1,
@@ -252,7 +484,6 @@ back() {
       this.rsiSeries.setData(rsi);
     }
 
-    // --- MACD (optional pane) ---
     if (this.macdChart) {
       this.macdSeries = this.macdChart.addSeries(LineSeries, {
         lineWidth: 1,
@@ -272,35 +503,127 @@ back() {
       this.macdHistSeries.setData(macdHist);
     }
 
-    // Sync time range between panes + anchor latest at right + remove left blank time
-    this.syncTimeScales();
-    this.setInitialVisibleRange(res);
-    this.scrollAllToLatest();
+    this.bindCrosshairReadout();
+    this.setDefaultCrosshairReadout();
 
-    // Resize handling
+    this.syncTimeScales();
+    this.priceChart.timeScale().fitContent();
+    this.setInitialVisibleRange(res);
+
     this.resizeObs?.disconnect();
     this.resizeObs = new ResizeObserver(() => {
       this.resizeAll();
-      // keep latest visible after layout changes
-      this.scrollAllToLatest();
+      this.priceChart?.timeScale().fitContent();
     });
     this.resizeObs.observe(this.priceEl.nativeElement);
 
     queueMicrotask(() => {
       this.resizeAll();
-      this.setInitialVisibleRange(res);
-      this.scrollAllToLatest();
+      this.priceChart?.timeScale().fitContent();
     });
   }
 
+  private bindCrosshairReadout() {
+    if (!this.priceChart) return;
+
+    this.priceChart.subscribeCrosshairMove((param: any) => {
+      if (!param?.time) {
+        this.setDefaultCrosshairReadout();
+        return;
+      }
+
+      const date = this.timeToDateString(param.time);
+      if (!date) {
+        this.setDefaultCrosshairReadout();
+        return;
+      }
+
+      this.crosshairDate.set(date);
+      this.dailyOhlcText.set(this.buildDailyReadout(date));
+      this.weeklyOhlcText.set(this.buildWeeklyReadout(date));
+    });
+  }
+
+  private setDefaultCrosshairReadout() {
+    const latestDailyDate = this.getLatestKey(this.dailyCandleMap, this.dailyLineMap);
+    const latestWeeklyDate = this.getLatestKey(this.weeklyCandleMap, this.weeklyLineMap);
+    const latest = [latestDailyDate, latestWeeklyDate].filter(Boolean).sort().at(-1) ?? null;
+
+    this.crosshairDate.set(latest);
+    this.dailyOhlcText.set(latestDailyDate ? this.buildDailyReadout(latestDailyDate) : null);
+    this.weeklyOhlcText.set(latestWeeklyDate ? this.buildWeeklyReadout(latestWeeklyDate) : null);
+  }
+
+  private buildDailyReadout(date: string): string | null {
+    if (this.dailyMode() === 'CANDLE') {
+      const c = this.dailyCandleMap.get(date);
+      if (!c) return null;
+      return `O ${this.fmt(c.open)} H ${this.fmt(c.high)} L ${this.fmt(c.low)} C ${this.fmt(c.close)}`;
+    }
+
+    const p = this.dailyLineMap.get(date);
+    if (!p) return null;
+    return `Close ${this.fmt(p.value)}`;
+  }
+
+  private buildWeeklyReadout(date: string): string | null {
+    if (this.weeklyMode() === 'CANDLE') {
+      const c = this.weeklyCandleMap.get(date);
+      if (!c) return null;
+      return `O ${this.fmt(c.open)} H ${this.fmt(c.high)} L ${this.fmt(c.low)} C ${this.fmt(c.close)}`;
+    }
+
+    const p = this.weeklyLineMap.get(date);
+    if (!p) return null;
+    return `Close ${this.fmt(p.value)}`;
+  }
+
+  private getLatestKey(
+    candleMap: Map<string, CandlePoint>,
+    lineMap: Map<string, LinePoint>
+  ): string | null {
+    const keys = [...candleMap.keys(), ...lineMap.keys()].sort();
+    return keys.length ? keys[keys.length - 1] : null;
+  }
+
+  private fmt(n: number | null | undefined): string {
+    if (n == null || Number.isNaN(n)) return '—';
+    return n.toFixed(2);
+  }
+
+  private timeToDateString(time: any): string | null {
+    if (!time) return null;
+
+    if (typeof time === 'string') {
+      return time;
+    }
+
+    if (typeof time === 'object' && time.year && time.month && time.day) {
+      const y = String(time.year);
+      const m = String(time.month).padStart(2, '0');
+      const d = String(time.day).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    return null;
+  }
+
   private syncTimeScales() {
-    const charts = [this.priceChart, this.rsiChart, this.macdChart]
-      .filter(Boolean) as IChartApi[];
+    const charts = [this.priceChart, this.rsiChart, this.macdChart].filter(Boolean) as IChartApi[];
     if (charts.length < 2) return;
 
+    let syncing = false;
+
     const propagate = (src: IChartApi, range: any) => {
-      if (!range) return;
-      for (const c of charts) if (c !== src) c.timeScale().setVisibleLogicalRange(range);
+      if (!range || syncing) return;
+      syncing = true;
+      try {
+        for (const c of charts) {
+          if (c !== src) c.timeScale().setVisibleLogicalRange(range);
+        }
+      } finally {
+        syncing = false;
+      }
     };
 
     for (const c of charts) {
@@ -308,24 +631,22 @@ back() {
     }
   }
 
-  private scrollAllToLatest() {
-    // ✅ ensures latest price is visible at right edge
-    this.priceChart?.timeScale().scrollToRealTime();
-    this.rsiChart?.timeScale().scrollToRealTime();
-    this.macdChart?.timeScale().scrollToRealTime();
-  }
-
-  private setInitialVisibleRange(res: MarketChartResponse) {
+  private setInitialVisibleRange(res: CombinedChartData) {
     if (!this.priceChart) return;
 
-    const bars = res.bars ?? [];
-    if (bars.length < 2) return;
+    const dates = [
+      ...(res.daily?.bars ?? []).map(b => b.date),
+      ...(res.weekly?.bars ?? []).map(b => b.date),
+    ].sort();
 
-    const from = bars[0].date as unknown as Time;
-    const to = bars[bars.length - 1].date as unknown as Time;
+    if (dates.length < 2) return;
 
-    // ✅ show only the time span you actually have data for (removes empty left time)
+    const from = dates[0] as unknown as Time;
+    const to = dates[dates.length - 1] as unknown as Time;
+
     this.priceChart.timeScale().setVisibleRange({ from, to });
+    this.rsiChart?.timeScale().setVisibleRange({ from, to });
+    this.macdChart?.timeScale().setVisibleRange({ from, to });
   }
 
   private resizeAll() {
@@ -342,15 +663,26 @@ back() {
   }
 
   private destroyCharts() {
-    this.priceChart?.remove(); this.priceChart = undefined;
-    this.rsiChart?.remove(); this.rsiChart = undefined;
-    this.macdChart?.remove(); this.macdChart = undefined;
+    this.priceChart?.remove();
+    this.priceChart = undefined;
+
+    this.rsiChart?.remove();
+    this.rsiChart = undefined;
+
+    this.macdChart?.remove();
+    this.macdChart = undefined;
+
+    this.dailyLineSeries = undefined;
+    this.dailyCandleSeries = undefined;
+    this.weeklyLineSeries = undefined;
+    this.weeklyCandleSeries = undefined;
+
+    this.dailyVolumeSeries = undefined;
+    this.weeklyVolumeSeries = undefined;
 
     this.ema20Series = undefined;
     this.ema50Series = undefined;
     this.ema200Series = undefined;
-
-    this.volSeries = undefined;
 
     this.rsiSeries = undefined;
     this.macdSeries = undefined;
@@ -376,7 +708,7 @@ back() {
 
     queueMicrotask(() => {
       this.resizeAll();
-      this.scrollAllToLatest();
+      this.priceChart?.timeScale().fitContent();
     });
   }
 
@@ -397,13 +729,12 @@ back() {
   }
 
   @HostListener('document:click', ['$event'])
-onDocClick(ev: MouseEvent) {
-  const menu = this.indMenu?.nativeElement;
-  if (!menu) return;
+  onDocClick(ev: MouseEvent) {
+    const menu = this.indMenu?.nativeElement;
+    if (!menu) return;
 
-  // only close if it's open and click was outside
-  if (menu.open && !menu.contains(ev.target as Node)) {
-    menu.open = false;
+    if (menu.open && !menu.contains(ev.target as Node)) {
+      menu.open = false;
+    }
   }
-}
 }

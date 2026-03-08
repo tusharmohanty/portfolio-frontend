@@ -28,6 +28,8 @@
         <option value="BREAKDOWNS_FIRST">Breakdowns first</option>
         <option value="BREAKOUTS_FIRST">Breakouts first</option>
         <option value="BAND_POSITION">Band position</option>
+        <option value="INVESTMENT_DESC">Investment (high → low)</option>
+        <option value="INVESTMENT_ASC">Investment (low → high)</option>
       </select>
     </div>
 
@@ -48,18 +50,20 @@
 
   <!-- List -->
   <div class="list" *ngIf="!loading(); else loadingTpl">
+
     <div class="rowCard" *ngFor="let r of viewRows()">
 
       <div class="left">
         <div class="symbolLine">
-        <button
-          type="button"
-          class="symSub chartBtn"
-          title="Open chart"
-          aria-label="Open chart for {{ r.symbol }}"
-          (click)="openChart(r.symbol); $event.stopPropagation()">
-          📈
-        </button>
+          <button
+            type="button"
+            class="symSub chartBtn"
+            title="Open chart"
+            aria-label="Open chart for {{ r.symbol }}"
+            (click)="openChart(r.symbol); $event.stopPropagation()">
+            📈
+          </button>
+
           <div class="symbol">{{ r.symbol }}</div>
           <div class="date">{{ r.tradeDate }}</div>
         </div>
@@ -78,6 +82,24 @@
           <div class="subItem">
             <span class="k">Band</span>
             <span class="v">{{ bandText(r) }}</span>
+          </div>
+
+          <div
+            class="subItem inv"
+            role="button"
+            tabindex="0"
+            title="Sort by Investment"
+            (click)="toggleInvSort()"
+            (keydown.enter)="toggleInvSort()"
+            (keydown.space)="toggleInvSort(); $event.preventDefault()"
+          >
+            <span class="k">Inv</span>
+            <span class="v">{{ (r.openSwingInv ?? 0) | currency:'INR':'symbol':'1.0-0' }}</span>
+          </div>
+
+          <div class="subItem" *ngIf="(r.openSwingQty ?? 0) > 0">
+            <span class="k">Qty</span>
+            <span class="v">{{ r.openSwingQty | number:'1.0-0' }}</span>
           </div>
         </div>
       </div>
@@ -122,6 +144,7 @@
     <div class="empty" *ngIf="viewRows().length === 0">
       No rows match your filters.
     </div>
+
   </div>
 
   <ng-template #loadingTpl>

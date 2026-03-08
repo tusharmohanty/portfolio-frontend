@@ -1,9 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component,ElementRef,ViewChild, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { KiteAuthService } from '../../services/kite-auth.service';
 import { PriceSyncService } from '../../services/price-sync.service';
-import { AddStockModalComponent } from '../stocks/add-stock-modal/add-stock-modal.component'; // adjust path
+import { AddStockModalComponent } from '../stocks/add-stock-modal/add-stock-modal.component';
 
 @Component({
   standalone: true,
@@ -15,12 +15,14 @@ import { AddStockModalComponent } from '../stocks/add-stock-modal/add-stock-moda
 export class MainLayoutComponent {
   private readonly router = inject(Router);
   private auth = inject(KiteAuthService);
-private priceSync = inject(PriceSyncService);
+  private priceSync = inject(PriceSyncService);
+  @ViewChild('contentEl', { static: false }) contentEl?: ElementRef<HTMLDivElement>;
 
-syncing = signal(false);
-syncMsg = signal<string | null>(null);
-syncErr = signal(false);
+  scrolled = signal(false);
 
+  syncing = signal(false);
+  syncMsg = signal<string | null>(null);
+  syncErr = signal(false);
 
   loggedIn = computed(() => this.auth.loggedIn());
 
@@ -28,7 +30,6 @@ syncErr = signal(false);
     this.auth.checkAuthStatus();
   }
 
-  // ✅ separate states
   menuOpen = signal(false);
   addStockOpen = signal(false);
 
@@ -41,7 +42,6 @@ syncErr = signal(false);
     this.menuOpen.set(false);
   }
 
-  // ✅ open modal, not menu
   openAddStocks(ev?: Event) {
     ev?.stopPropagation();
     this.closeMenu();
@@ -55,33 +55,41 @@ syncErr = signal(false);
   startKiteLogin() {
     this.auth.startKiteLogin(this.router.url);
   }
-   
+
   syncHistoricalPrices(ev?: Event) {
-  ev?.stopPropagation();
-  this.closeMenu();
+    ev?.stopPropagation();
+    this.closeMenu();
 
-  if (this.syncing()) return;
+    if (this.syncing()) return;
 
-  this.syncErr.set(false);
-  this.syncMsg.set('Syncing historical prices…');
-  this.syncing.set(true);
+    this.syncErr.set(false);
+    this.syncMsg.set('Running EOD orchestrator…');
+    this.syncing.set(true);
 
-  this.priceSync.syncHistorical().subscribe({
-    next: () => {
-      this.syncing.set(false);
-      this.syncErr.set(false);
-      this.syncMsg.set('Historical price sync triggered successfully.');
-      // auto-hide after a bit
-      setTimeout(() => this.syncMsg.set(null), 3500);
-    },
-    error: (err) => {
-      this.syncing.set(false);
-      this.syncErr.set(true);
-      const msg = err?.error?.message || err?.error || err?.message || 'Sync failed';
-      this.syncMsg.set(String(msg));
-      setTimeout(() => this.syncMsg.set(null), 6000);
-    }
-  });
+    this.priceSync.runEod().subscribe({
+      next: (res: any) => {
+        this.syncing.set(false);
+        this.syncErr.set(false);
+        this.syncMsg.set(res?.message || 'EOD orchestrator triggered successfully.');
+        setTimeout(() => this.syncMsg.set(null), 3500);
+      },
+      error: (err) => {
+        this.syncing.set(false);
+        this.syncErr.set(true);
+        const msg =
+          err?.error?.message ||
+          err?.error?.error ||
+          err?.error ||
+          err?.message ||
+          'EOD sync failed';
+        this.syncMsg.set(String(msg));
+        setTimeout(() => this.syncMsg.set(null), 6000);
+      }
+    });
+  }
+
+  onContentScroll(event: Event) {
+  const el = event.target as HTMLDivElement;
+  this.scrolled.set(el.scrollTop > 16);
 }
-  
 }

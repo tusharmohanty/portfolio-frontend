@@ -114,3 +114,40 @@ td { padding:12px; border-bottom:1px solid #162233; vertical-align:top; }
   opacity: 1;
   text-decoration: underline;
 }
+
+/* Make all headers feel interactive */
+.table thead th.clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms ease, transform 80ms ease;
+}
+
+/* Align header label + arrow consistently */
+.table thead th .thInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Hover "clickable" feel */
+.table thead th.clickable:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Pressed feel */
+.table thead th.clickable:active {
+  transform: translateY(1px);
+}
+
+/* Nice subtle arrow style */
+.table thead th .sortMark {
+  opacity: 0.85;
+  font-size: 0.9em;
+}
+
+/* Keyboard focus support (when th is clicked/focused in some browsers) */
+.table thead th.clickable:focus,
+.table thead th.clickable:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.28);
+  outline-offset: -2px;
+}

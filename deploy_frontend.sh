@@ -2,29 +2,27 @@
 set -euo pipefail
 
 # =========================
-# Frontend deploy (Angular) -> castle (brew nginx)
+# Frontend deploy (Angular) -> castle (Ubuntu nginx)
 # =========================
 
-CASTLE_HOST="castle.local"
+CASTLE_HOST="castle"
 CASTLE_USER="tushar"
 CASTLE_SSH="${CASTLE_USER}@${CASTLE_HOST}"
 
 ROOT_DIR="/Users/tusharmohanty/projects/stock-portfolio-app"
-
-# If your angular.json is in ROOT_DIR, build from there.
 FRONTEND_DIR="$ROOT_DIR"
 
-# Choose ONE:
-# 1) If you build from root:
+# Build command
 FRONTEND_BUILD_CMD="npm run build"
-# 2) If you need production config:
+# Example if you later want prod config:
 # FRONTEND_BUILD_CMD="npm run build -- --configuration production"
 
-# Angular output from your log:
+# Angular output root
 FRONTEND_DIST_DIR="$ROOT_DIR/dist/stock-portfolio-app"
 
-# Remote target (nginx root points to /var/www/portfolio-frontend/browser in your setup)
-REMOTE_FRONTEND_DIR="/var/www/portfolio-frontend"
+# Nginx serves from /var/www/portfolio-frontend/browser
+REMOTE_FRONTEND_ROOT="/var/www/portfolio-frontend"
+REMOTE_BROWSER_DIR="${REMOTE_FRONTEND_ROOT}/browser"
 
 log() { printf "\n\033[1;36m==>\033[0m %s\n" "$*"; }
 
@@ -39,7 +37,11 @@ ssh -o BatchMode=yes -o ConnectTimeout=5 "$CASTLE_SSH" "echo 'SSH OK on $(hostna
 # ---- Build ----
 log "Building frontend in $FRONTEND_DIR"
 pushd "$FRONTEND_DIR" >/dev/null
-if [[ -f package-lock.json ]]; then npm ci; else npm install; fi
+if [[ -f package-lock.json ]]; then
+  npm ci
+else
+  npm install
+fi
 $FRONTEND_BUILD_CMD
 popd >/dev/null
 
@@ -49,25 +51,49 @@ if [[ ! -d "$FRONTEND_DIST_DIR" ]]; then
   exit 1
 fi
 
-# If Angular produced /browser, deploy that folder contents to remote /browser
+# Angular 17+/SSR-style output often uses dist/.../browser
 SYNC_SRC="$FRONTEND_DIST_DIR"
-SYNC_DEST="$REMOTE_FRONTEND_DIR"
-
 if [[ -d "$FRONTEND_DIST_DIR/browser" ]]; then
   SYNC_SRC="$FRONTEND_DIST_DIR/browser"
-  SYNC_DEST="$REMOTE_FRONTEND_DIR/browser"
 fi
 
 log "Sync source: $SYNC_SRC"
-log "Sync dest  : $SYNC_DEST"
+log "Sync dest  : $REMOTE_BROWSER_DIR"
 
-# ---- Remote dir ----
+# ---- Remote prepare ----
 log "Preparing remote directory"
-#ssh -t "$CASTLE_SSH" "sudo mkdir -p '$SYNC_DEST' && sudo chown -R '$CASTLE_USER':\$(id -gn '$CASTLE_USER') '$REMOTE_FRONTEND_DIR'"
+ssh "$CASTLE_SSH" "
+  set -e
+  sudo mkdir -p '$REMOTE_BROWSER_DIR'
+"
 
 # ---- Deploy ----
+# Use --rsync-path='sudo rsync' so writes to /var/www work cleanly
 log "Deploying files (rsync --delete)"
-rsync -av --delete --progress "$SYNC_SRC"/ "$CASTLE_SSH:$SYNC_DEST/"
+rsync -av --delete --progress \
+  --rsync-path="sudo rsync" \
+  "$SYNC_SRC"/ "$CASTLE_SSH:$REMOTE_BROWSER_DIR/"
+
+# ---- Permissions ----
+log "Fixing ownership and permissions"
+ssh "$CASTLE_SSH" "
+  set -e
+  sudo chown -R www-data:www-data '$REMOTE_FRONTEND_ROOT'
+  sudo find '$REMOTE_FRONTEND_ROOT' -type d -exec chmod 755 {} \;
+  sudo find '$REMOTE_FRONTEND_ROOT' -type f -exec chmod 644 {} \;
+"
+
+# ---- Reload nginx ----
+log "Reloading nginx"
+ssh "$CASTLE_SSH" "
+  set -e
+  sudo -n nginx -t
+  sudo -n systemctl reload nginx
+"
+
+# ---- Verify ----
+log "Verifying deployment"
+curl -sSf https://castle.local >/dev/null
 
 log "Done ✅"
-log "Try: http://${CASTLE_HOST}/holdings"
+log "Try: https://castle.local/holdings"

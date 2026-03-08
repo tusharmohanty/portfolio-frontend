@@ -3,14 +3,17 @@ export type SwingStatusFilter = 'OPEN' | 'CLOSED' | 'ALL';
 export type SortDir = 'asc' | 'desc';
 
 export type SwingSortKey =
+  | 'openedAt'
   | 'updatedAt'
-  | 'targetDeltaPct'
-  | 'holdingPeriodDays'
+  | 'pl'           
   | 'plPct'
   | 'plPctDaily'
   | 'plPctWeekly'
   | 'plPctMonthly'
-  | 'plPct15days';
+  | 'plPct15days'
+  | 'targetDeltaPct'
+  | 'holdingPeriodDays'
+  | 'positionSize';
 
 export interface SwingGroupPosition {
   id: number;

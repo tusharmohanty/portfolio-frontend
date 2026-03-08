@@ -1,16 +1,23 @@
-/* ---- Page layout: fill viewport, chart stretches ---- */
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .page {
-  min-height: 100vh;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
+  overflow: hidden;
 }
 
-/* header layout */
 .header {
   flex: 0 0 auto;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
@@ -22,7 +29,6 @@
   flex-wrap: nowrap;
 }
 
-/* ---- Title + legend ---- */
 .titleRow {
   display: flex;
   align-items: center;
@@ -40,16 +46,51 @@
   font-weight: 500;
 }
 
-/* Match your chart series colors */
-.legend.close { color: #e5e7eb; }     /* Close */
-.legend.ema20 { color: #00bcd4; }     /* EMA20 */
-.legend.ema50 { color: #ff9800; }     /* EMA50 */
-.legend.ema200 { color: #e91e63; }    /* EMA200 */
-.legend.volume { color: #607d8b; }    /* Volume */
-.legend.rsi { color: #9c27b0; }       /* RSI */
-.legend.macd { color: #4caf50; }      /* MACD */
+.legend.dailyPrice { color: #e5e7eb; }
+.legend.weeklyPrice { color: #38bdf8; }
+.legend.dailyVolume { color: rgba(96, 125, 139, 0.95); }
+.legend.weeklyVolume { color: rgba(56, 189, 248, 0.95); }
 
-/* ---- Dropdown ---- */
+.legend.ema20 { color: #00bcd4; }
+.legend.ema50 { color: #ff9800; }
+.legend.ema200 { color: #e91e63; }
+.legend.rsi { color: #9c27b0; }
+.legend.macd { color: #4caf50; }
+
+.displayModes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.modeLabel {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 600;
+  margin-right: 2px;
+}
+
+.btnMode {
+  padding: 6px 10px;
+  min-width: 68px;
+}
+
+.btnMode.active {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #e2f3ff;
+}
+
 .indicators {
   position: relative;
 }
@@ -68,17 +109,13 @@
   right: 0;
   top: calc(100% + 8px);
   z-index: 20;
-
   display: grid;
   gap: 8px;
-
   padding: 10px 12px;
   border-radius: 12px;
-
-  background: #0b1220; /* matches your dark chart bg */
-  border: 1px solid rgba(148,163,184,0.25);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-
+  background: #0b1220;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   min-width: 160px;
 }
 
@@ -91,58 +128,115 @@
   color: #cbd5e1;
 }
 
-/* subtle button style for dropdown trigger */
 .btnGhost {
   background: transparent;
-  border: 1px solid rgba(148,163,184,0.25);
+  border: 1px solid rgba(148, 163, 184, 0.25);
 }
 
-/* ---- Chart grid: flex column that fills remaining height ---- */
 .chartGrid {
-  flex: 1 1 auto;           /* take remaining space under header */
-  min-height: 0;            /* critical for flex children */
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   position: relative;
+  overflow: hidden;
 }
 
-/* Each pane is label + body; body expands */
 .pane {
   display: flex;
   flex-direction: column;
   min-height: 0;
 }
 
+.paneTopbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
 .paneLabel {
   flex: 0 0 auto;
   font-size: 12px;
   color: #94a3b8;
-  margin-bottom: 6px;
+}
+
+.ohlcStrip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ohlcBlock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #cbd5e1;
+  padding: 4px 8px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.ohlcBlock.daily {
+  border-color: rgba(229, 231, 235, 0.18);
+}
+
+.ohlcBlock.weekly {
+  border-color: rgba(56, 189, 248, 0.25);
+}
+
+.ohlcTag {
+  font-weight: 700;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.ohlcDate {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.ohlcText {
+  white-space: nowrap;
 }
 
 .paneBody {
   flex: 1 1 auto;
-  min-height: 120px;        /* floor so small panes don't collapse too hard */
+  min-height: 0;
   border-radius: 12px;
   overflow: hidden;
 }
 
-/* Allocate heights: Price grows, others are fixed-ish */
-.pricePane { flex: 1 1 auto; }
-.volPane   { flex: 0 0 170px; }
-.rsiPane   { flex: 0 0 160px; }
-.macdPane  { flex: 0 0 180px; }
+.pricePane {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
-/* When RSI+MACD are hidden, give price more */
-.chartGrid.compact .volPane { flex-basis: 190px; }
-.chartGrid.compact .pricePane { flex: 1 1 auto; }
+.rsiPane {
+  flex: 0 0 150px;
+}
 
-/* When exactly one of RSI/MACD is visible */
-.chartGrid.oneExtra .volPane { flex-basis: 170px; }
-.chartGrid.oneExtra .pricePane { flex: 1 1 auto; }
+.macdPane {
+  flex: 0 0 170px;
+}
 
-/* overlays */
+.chartGrid.compact .pricePane {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.chartGrid.oneExtra .pricePane {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .overlay {
   position: absolute;
   inset: 0;

@@ -3,11 +3,14 @@
     <div class="titleRow">
       <span class="symbol">Chart • {{ symbol() }}</span>
 
-      <span class="legend close">Close</span>
+      <span class="legend dailyPrice">Daily Price</span>
+      <span class="legend weeklyPrice">Weekly Price</span>
+      <span class="legend dailyVolume">Daily Volume</span>
+      <span class="legend weeklyVolume">Weekly Volume</span>
+
       <span class="legend ema20">EMA20</span>
       <span class="legend ema50">EMA50</span>
       <span class="legend ema200">EMA200</span>
-      <span class="legend volume">Volume</span>
       <span class="legend rsi">RSI</span>
       <span class="legend macd">MACD</span>
     </div>
@@ -15,42 +18,86 @@
     <div class="controls">
       <button class="btn" (click)="back()">← Back</button>
 
+      <div class="displayModes">
+        <div class="modeGroup">
+          <span class="modeLabel">Daily</span>
+          <button
+            class="btn btnGhost btnMode"
+            [class.active]="dailyMode() === 'CANDLE'"
+            (click)="setDailyMode('CANDLE')">
+            Candle
+          </button>
+          <button
+            class="btn btnGhost btnMode"
+            [class.active]="dailyMode() === 'LINE'"
+            (click)="setDailyMode('LINE')">
+            Line
+          </button>
+        </div>
+
+        <div class="modeGroup">
+          <span class="modeLabel">Weekly</span>
+          <button
+            class="btn btnGhost btnMode"
+            [class.active]="weeklyMode() === 'CANDLE'"
+            (click)="setWeeklyMode('CANDLE')">
+            Candle
+          </button>
+          <button
+            class="btn btnGhost btnMode"
+            [class.active]="weeklyMode() === 'LINE'"
+            (click)="setWeeklyMode('LINE')">
+            Line
+          </button>
+        </div>
+      </div>
+
       <details class="indicators" #indMenu>
         <summary class="btn btnGhost">Indicators ▾</summary>
 
         <div class="indicatorMenu">
           <label class="chk">
-            <input type="checkbox"
-                   [checked]="showEma20()"
-                   (change)="toggleEma('ema20', $event)" />
+            <input
+              type="checkbox"
+              [checked]="showEma20()"
+              (change)="toggleEma('ema20', $event)"
+            />
             EMA20
           </label>
 
           <label class="chk">
-            <input type="checkbox"
-                   [checked]="showEma50()"
-                   (change)="toggleEma('ema50', $event)" />
+            <input
+              type="checkbox"
+              [checked]="showEma50()"
+              (change)="toggleEma('ema50', $event)"
+            />
             EMA50
           </label>
 
           <label class="chk">
-            <input type="checkbox"
-                   [checked]="showEma200()"
-                   (change)="toggleEma('ema200', $event)" />
+            <input
+              type="checkbox"
+              [checked]="showEma200()"
+              (change)="toggleEma('ema200', $event)"
+            />
             EMA200
           </label>
 
           <label class="chk">
-            <input type="checkbox"
-                   [checked]="showRsi()"
-                   (change)="toggleRsi($event)" />
+            <input
+              type="checkbox"
+              [checked]="showRsi()"
+              (change)="toggleRsi($event)"
+            />
             RSI
           </label>
 
           <label class="chk">
-            <input type="checkbox"
-                   [checked]="showMacd()"
-                   (change)="toggleMacd($event)" />
+            <input
+              type="checkbox"
+              [checked]="showMacd()"
+              (change)="toggleMacd($event)"
+            />
             MACD
           </label>
         </div>
@@ -58,19 +105,35 @@
     </div>
   </div>
 
-  <!-- Make chart area stretch and remove bottom whitespace -->
-  <div class="chartGrid"
-       [class.compact]="!showRsi() && !showMacd()"
-       [class.oneExtra]="(showRsi() && !showMacd()) || (!showRsi() && showMacd())">
-
+  <div
+    class="chartGrid"
+    [class.compact]="!showRsi() && !showMacd()"
+    [class.oneExtra]="(showRsi() && !showMacd()) || (!showRsi() && showMacd())"
+  >
     <div class="pane pricePane">
-      <div class="paneLabel">Price</div>
-      <div #priceEl class="paneBody"></div>
-    </div>
+      <div class="paneTopbar">
+        <div class="paneLabel">
+          Price + Volume • Daily {{ dailyMode() }} • Weekly {{ weeklyMode() }}
+        </div>
 
-    <div class="pane volPane">
-      <div class="paneLabel">Volume</div>
-      <div #volumeEl class="paneBody"></div>
+        <div class="ohlcStrip">
+          <div class="ohlcBlock" *ngIf="crosshairDate() as dt">
+            <span class="ohlcDate">{{ dt }}</span>
+          </div>
+
+          <div class="ohlcBlock daily" *ngIf="dailyOhlcText() as txt">
+            <span class="ohlcTag">D</span>
+            <span class="ohlcText">{{ txt }}</span>
+          </div>
+
+          <div class="ohlcBlock weekly" *ngIf="weeklyOhlcText() as txt">
+            <span class="ohlcTag">W</span>
+            <span class="ohlcText">{{ txt }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div #priceEl class="paneBody"></div>
     </div>
 
     <div class="pane rsiPane" *ngIf="showRsi()">
@@ -84,6 +147,6 @@
     </div>
 
     <div class="overlay" *ngIf="loading()">Loading chart…</div>
-    <div class="overlay" *ngIf="!loading() && !chart()">No chart data.</div>
+    <div class="overlay" *ngIf="!loading() && !chartReady()">No chart data.</div>
   </div>
 </div>
