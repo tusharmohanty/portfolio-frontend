@@ -1,10 +1,13 @@
 import { Component, computed, signal } from '@angular/core';
 import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs/operators';
+
 import { TradesService } from '../../services/trades.service';
 import { SwingTradeService } from '../../services/swing-trade.service';
 import { KiteTrade } from '../../models/kite-trade.model';
 import { CreateSwingGroupRequest } from '../../models/swing-group-requests.model';
+import { SwingGroupPosition } from '../../models/swing-group-position.model';
 import { InvestmentsService } from '../../services/investments.service';
 
 @Component({
@@ -19,19 +22,27 @@ export class TradesToGroupComponent {
   error = signal<string | null>(null);
 
   trades = signal<KiteTrade[]>([]);
-  q = signal(''); // symbol search
+  q = signal('');
 
   selected = signal<Set<number>>(new Set());
-  showCreate = signal(false);
-  
+
+  // unified assign drawer
+  showAssignDrawer = signal(false);
+  assignError = signal<string | null>(null);
+
+  // create-new section state
   creating = signal(false);
   createError = signal<string | null>(null);
 
-  // ✅ sorting
-  sortField = signal<'time' | 'symbol' | null>('time'); // default sort by time
-  sortDir = signal<'asc' | 'desc'>('desc'); // newest first
-  
-  
+  // existing-group section state
+  loadingGroups = signal(false);
+  addingToGroup = signal(false);
+  openGroups = signal<SwingGroupPosition[]>([]);
+  selectedGroupId = signal<number | null>(null);
+
+  sortField = signal<'time' | 'symbol' | null>('time');
+  sortDir = signal<'asc' | 'desc'>('desc');
+
   form = signal<CreateSwingGroupRequest>({
     tradingsymbol: '',
     exchange: 'NSE',
@@ -41,17 +52,14 @@ export class TradesToGroupComponent {
     timeframe: 'SWING',
   });
 
-  // ✅ filter + sort (use this in template instead of filtered())
   filtered = computed(() => {
     const s = (this.q() || '').trim().toUpperCase();
     let rows = this.trades();
 
-    // filter
     if (s) {
       rows = rows.filter(t => (t.tradingsymbol || '').toUpperCase().includes(s));
     }
 
-    // sort
     const field = this.sortField();
     const dir = this.sortDir();
     if (!field) return rows;
@@ -81,6 +89,7 @@ export class TradesToGroupComponent {
     const rows = this.trades().filter(t => ids.has(t.id));
     const symbols = new Set(rows.map(r => r.tradingsymbol).filter(Boolean) as string[]);
     const exchs = new Set(rows.map(r => r.exchange).filter(Boolean) as string[]);
+
     return {
       rows,
       singleSymbol: symbols.size === 1 ? [...symbols][0] : null,
@@ -88,9 +97,76 @@ export class TradesToGroupComponent {
     };
   });
 
-  constructor(private tradesApi: TradesService, 
-              private swingApi: SwingTradeService,
-              private invstApi: InvestmentsService) {
+  selectedTrades = computed(() => {
+    const ids = this.selected();
+    return this.trades().filter(t => ids.has(t.id));
+  });
+
+  selectedSymbol = computed(() => {
+    const symbols = [
+      ...new Set(
+        this.selectedTrades()
+          .map(t => (t.tradingsymbol || '').trim())
+          .filter(Boolean)
+          .map(s => s.toUpperCase())
+      )
+    ];
+    return symbols.length === 1 ? symbols[0] : '';
+  });
+
+  canAssignToExistingGroup = computed(() => {
+    const rows = this.selectedTrades();
+    if (!rows.length) return false;
+
+    const symbols = new Set(
+      rows
+        .map(t => (t.tradingsymbol || '').trim().toUpperCase())
+        .filter(Boolean)
+    );
+
+    return symbols.size === 1;
+  });
+
+  matchingOpenGroups = computed(() => {
+    const symbol = this.selectedSymbol();
+    if (!symbol) return [];
+
+    return this.openGroups().filter(g =>
+      g.status === 'OPEN' &&
+      (g.tradingsymbol || '').trim().toUpperCase() === symbol
+    );
+  });
+
+  selectedQty = computed(() => {
+    const ids = this.selected();
+    return this.trades()
+      .filter(t => ids.has(t.id))
+      .reduce((sum, t) => sum + (t.quantity ?? 0), 0);
+  });
+
+  selectedQtyBreakup = computed(() => {
+    const ids = this.selected();
+    let buy = 0;
+    let sell = 0;
+
+    for (const t of this.trades()) {
+      if (!ids.has(t.id)) continue;
+
+      const q = t.quantity ?? 0;
+      const side = (t.transactionType || '').toUpperCase();
+
+      if (side === 'BUY') buy += q;
+      else if (side === 'SELL') sell += q;
+    }
+
+    return { buy, sell, net: buy - sell };
+  });
+
+  constructor(
+    private tradesApi: TradesService,
+    private swingApi: SwingTradeService,
+    private invstApi: InvestmentsService
+  ) {
     this.load();
   }
 
@@ -110,13 +186,12 @@ export class TradesToGroupComponent {
     });
   }
 
-  // ✅ click handlers for sortable headers
   toggleSort(field: 'time' | 'symbol') {
     if (this.sortField() === field) {
       this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
     } else {
       this.sortField.set(field);
-      this.sortDir.set('desc'); // default when switching column
+      this.sortDir.set(field === 'symbol' ? 'asc' : 'desc');
     }
   }
 
@@ -130,8 +205,10 @@ export class TradesToGroupComponent {
     const vis = this.filtered();
     const s = new Set(this.selected());
     const allSelected = vis.length > 0 && vis.every(t => s.has(t.id));
+
     if (allSelected) vis.forEach(t => s.delete(t.id));
     else vis.forEach(t => s.add(t.id));
+
     this.selected.set(s);
   }
 
@@ -145,7 +222,7 @@ export class TradesToGroupComponent {
     return '—';
   }
 
-  openCreate() {
+  openAssignDrawer() {
     const sum = this.selectionSummary();
     const f = { ...this.form() };
 
@@ -153,13 +230,51 @@ export class TradesToGroupComponent {
     if (sum.singleExchange) f.exchange = sum.singleExchange;
 
     this.form.set(f);
+
+    this.assignError.set(null);
     this.createError.set(null);
-    this.showCreate.set(true);
+    this.selectedGroupId.set(null);
+    this.openGroups.set([]);
+    this.showAssignDrawer.set(true);
+
+    if (this.canAssignToExistingGroup()) {
+      this.loadMatchingOpenGroups();
+    }
   }
 
-  closeCreate() {
-    this.showCreate.set(false);
+  closeAssignDrawer() {
+    this.showAssignDrawer.set(false);
+    this.assignError.set(null);
+    this.createError.set(null);
+    this.selectedGroupId.set(null);
   }
+
+  loadMatchingOpenGroups() {
+  const symbol = this.selectedSymbol();
+  if (!symbol) {
+    this.assignError.set('Could not determine selected symbol.');
+    return;
+  }
+
+  this.loadingGroups.set(true);
+  this.assignError.set(null);
+
+  this.swingApi.getGroups('OPEN', 'updatedAt', 'desc', symbol)
+    .pipe(finalize(() => this.loadingGroups.set(false)))
+    .subscribe({
+      next: (groups: SwingGroupPosition[]) => {
+        this.openGroups.set(groups ?? []);
+        const matches = this.matchingOpenGroups();
+        if (matches.length === 1) {
+          this.selectedGroupId.set(matches[0].id);
+        }
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.assignError.set(err?.error ?? err?.message ?? 'Failed to load matching open groups');
+      }
+    });
+}
 
   createGroupAndAttach() {
     const ids = [...this.selected()];
@@ -176,15 +291,17 @@ export class TradesToGroupComponent {
 
     this.creating.set(true);
     this.createError.set(null);
+    this.assignError.set(null);
 
     this.swingApi.createGroup(f).subscribe({
       next: (groupId: number) => {
         this.swingApi.addTradesToGroup(groupId, { kiteTradeIds: ids }).subscribe({
           next: () => {
             this.creating.set(false);
-            this.showCreate.set(false);
+            this.showAssignDrawer.set(false);
             this.clearSelection();
             alert(`Group #${groupId}: added ${ids.length} trades`);
+            this.load();
           },
           error: (err: any) => {
             this.creating.set(false);
@@ -199,66 +316,77 @@ export class TradesToGroupComponent {
     });
   }
 
-    // ✅ Aggregate quantity for selected trades
-  selectedQty = computed(() => {
-    const ids = this.selected();
-    return this.trades()
-      .filter(t => ids.has(t.id))
-      .reduce((sum, t) => sum + (t.quantity ?? 0), 0);
-  });
+  addSelectedTradesToGroup() {
+  const groupId = this.selectedGroupId();
+  if (!groupId) {
+    this.assignError.set('Please select a group.');
+    return;
+  }
 
-  // ✅ Optional: split BUY/SELL and net (useful for grouping/matching)
-  selectedQtyBreakup = computed(() => {
-    const ids = this.selected();
-    let buy = 0;
-    let sell = 0;
+  const kiteTradeIds = [...this.selected()];
+  if (kiteTradeIds.length === 0) {
+    this.assignError.set('Select at least one trade');
+    return;
+  }
 
-    for (const t of this.trades()) {
-      if (!ids.has(t.id)) continue;
+  this.addingToGroup.set(true);
+  this.assignError.set(null);
 
-      const q = t.quantity ?? 0;
-      const side = (t.transactionType || '').toUpperCase();
-
-      if (side === 'BUY') buy += q;
-      else if (side === 'SELL') sell += q;
-    }
-
-    return { buy, sell, net: buy - sell };
-  });
-  markSelectedAsCore() {
-  const ids = [...this.selected()];
-  if (ids.length === 0) return;
-
-  this.invstApi.migrateBulk({ kiteTradeIds: ids, notes: 'CORE' }).subscribe({
-    next: (res) => {
-      const ok = res.filter(r => r.success).length;
-      const fail = res.length - ok;
-      alert(`Core marked: ${ok} ok${fail ? `, ${fail} failed` : ''}`);
-      this.load(); // refresh so UI can show status
-    },
-    error: (err) => alert(err?.error ?? err?.message ?? 'Failed to mark core'),
-  });
-}
-
-removeSelectedFromCore() {
-  const ids = [...this.selected()];
-  if (ids.length === 0) return;
-
-  // simple loop; OK for now
-  let ok = 0, fail = 0, done = 0;
-
-  ids.forEach(id => {
-    this.invstApi.unmigrateOne(id).subscribe({
-      next: () => { ok++; done++; if (done === ids.length) this.afterCoreUpdate(ok, fail); },
-      error: () => { fail++; done++; if (done === ids.length) this.afterCoreUpdate(ok, fail); },
+  this.swingApi.addTradesToGroup(groupId, { kiteTradeIds })
+    .pipe(finalize(() => this.addingToGroup.set(false)))
+    .subscribe({
+      next: () => {
+        this.closeAssignDrawer();
+        this.clearSelection();
+        alert(`Group #${groupId}: added ${kiteTradeIds.length} trades`);
+        this.load();
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.assignError.set(err?.error ?? err?.message ?? 'Failed to add trades to group');
+      }
     });
-  });
 }
 
-private afterCoreUpdate(ok: number, fail: number) {
-  alert(`Core removed: ${ok} ok${fail ? `, ${fail} failed` : ''}`);
-  this.load();
-}
+  markSelectedAsCore() {
+    const ids = [...this.selected()];
+    if (ids.length === 0) return;
 
+    this.invstApi.migrateBulk({ kiteTradeIds: ids, notes: 'CORE' }).subscribe({
+      next: (res) => {
+        const ok = res.filter(r => r.success).length;
+        const fail = res.length - ok;
+        alert(`Core marked: ${ok} ok${fail ? `, ${fail} failed` : ''}`);
+        this.load();
+      },
+      error: (err) => alert(err?.error ?? err?.message ?? 'Failed to mark core'),
+    });
+  }
 
+  removeSelectedFromCore() {
+    const ids = [...this.selected()];
+    if (ids.length === 0) return;
+
+    let ok = 0, fail = 0, done = 0;
+
+    ids.forEach(id => {
+      this.invstApi.unmigrateOne(id).subscribe({
+        next: () => {
+          ok++;
+          done++;
+          if (done === ids.length) this.afterCoreUpdate(ok, fail);
+        },
+        error: () => {
+          fail++;
+          done++;
+          if (done === ids.length) this.afterCoreUpdate(ok, fail);
+        },
+      });
+    });
+  }
+
+  private afterCoreUpdate(ok: number, fail: number) {
+    alert(`Core removed: ${ok} ok${fail ? `, ${fail} failed` : ''}`);
+    this.load();
+  }
 }

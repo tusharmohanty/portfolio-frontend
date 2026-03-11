@@ -8,13 +8,20 @@ import { AddTradesToGroupRequest, CreateSwingGroupRequest } from '../models/swin
 export class SwingTradeService {
   constructor(private http: HttpClient) {}
 
-  getGroups(status: SwingStatusFilter, sort: SwingSortKey, dir: SortDir): Observable<SwingGroupPosition[]> {
-    let params = new HttpParams();
-    if (status && status !== 'ALL') params = params.set('status', status);
-    if (sort) params = params.set('sort', sort);
-    if (dir) params = params.set('dir', dir);
-    return this.http.get<SwingGroupPosition[]>('/api/swing/groups', { params });
+  getGroups(
+  status: SwingStatusFilter,
+  sort: SwingSortKey,
+  dir: SortDir,
+  symbol?: string
+): Observable<SwingGroupPosition[]> {
+  let url = `/api/swing/groups?status=${encodeURIComponent(status)}&sort=${encodeURIComponent(sort)}&dir=${encodeURIComponent(dir)}`;
+
+  if (symbol && symbol.trim()) {
+    url += `&symbol=${encodeURIComponent(symbol.trim())}`;
   }
+
+  return this.http.get<SwingGroupPosition[]>(url);
+}
 
   createGroup(req: CreateSwingGroupRequest): Observable<number> {
     // POST /api/swing/group-trades
