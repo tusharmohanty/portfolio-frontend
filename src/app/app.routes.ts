@@ -7,6 +7,7 @@ import { MainLayoutComponent } from './components/main-layout/main-layout.compon
 import { WatchlistDeviationComponent } from './components/watchlist-deviation/watchlist-deviation.component';
 import { ReturnsComponent } from './components/returns/returns.component';
 import { ReturnsChartComponent } from './components/returns-chart/returns-chart.component';
+import { ClosedSwingReportComponent } from './components/closed-swing-report/closed-swing-report.component';
 export const routes: Routes = [
   {
     path: '',
@@ -19,6 +20,7 @@ export const routes: Routes = [
       { path: 'core', component: CorePortfolioComponent },
       { path: 'watchlist', component: WatchlistDeviationComponent},
       { path: 'returns', component: ReturnsComponent },
+      { path: 'closed-swing', component: ClosedSwingReportComponent },
       {path: 'returns/chart/:symbol',component: ReturnsChartComponent
 }
     ],

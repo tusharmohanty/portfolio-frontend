@@ -1,0 +1,240 @@
+<div class="report-page">
+  <div class="page-header">
+    <div>
+      <div class="title">Closed Swing Trades Report</div>
+      <div class="subtitle">
+        Realized results for closed swing groups from {{ from() }} to {{ to() }}
+      </div>
+    </div>
+
+    <div class="filter-bar">
+      <label class="field">
+        <span>From</span>
+        <input type="date" [ngModel]="from()" (ngModelChange)="from.set($event)" />
+      </label>
+
+      <label class="field">
+        <span>To</span>
+        <input type="date" [ngModel]="to()" (ngModelChange)="to.set($event)" />
+      </label>
+
+      <button class="btn primary" (click)="applyFilters()">Apply</button>
+      <button class="btn ghost" (click)="setThisMonth()">This Month</button>
+      <button class="btn ghost" (click)="setYtd()">YTD</button>
+      <button class="btn ghost" (click)="resetToCurrentMonth()">Reset</button>
+    </div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="summary-label">All Combined P/L</div>
+      <div class="summary-value" [ngClass]="badgeClass(summary().allCombinedPl)">
+        {{ summary().allCombinedPl | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-label">Buy Value</div>
+      <div class="summary-value flat">
+        {{ summary().buyValue | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-label">Sell Value</div>
+      <div class="summary-value flat">
+        {{ summary().sellValue | number:'1.2-2' }}
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-label">Charges</div>
+      <div class="summary-value flat">
+        {{ summary().charges | number:'1.2-2' }}
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card meta-strip">
+    <div class="meta-item">
+      <div class="meta-label">Trade Count</div>
+      <div class="meta-value">{{ summary().tradeCount }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Wins</div>
+      <div class="meta-value pos">{{ summary().winCount }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Losses</div>
+      <div class="meta-value neg">{{ summary().lossCount }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Buy Value</div>
+      <div class="meta-value">{{ summary().buyValue | number:'1.2-2' }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Sell Value</div>
+      <div class="meta-value">{{ summary().sellValue | number:'1.2-2' }}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Charges</div>
+      <div class="meta-value">{{ summary().charges | number:'1.2-2' }}</div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Closed Swing Trades</div>
+        <div class="section-subtitle">
+          Showing {{ viewRows().length }} rows
+        </div>
+      </div>
+      <div class="section-subtitle">
+        Summary total:
+        <span [ngClass]="badgeClass(summary().allCombinedPl)">
+          {{ summary().allCombinedPl | number:'1.2-2' }}
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="loading()" class="state-box">Loading report…</div>
+    <div *ngIf="!loading() && error()" class="state-box error">{{ error() }}</div>
+    <div *ngIf="!loading() && !error() && viewRows().length === 0" class="state-box">
+      No closed swing trades found for the selected date range.
+    </div>
+
+    <div *ngIf="!loading() && !error() && viewRows().length > 0" class="table-wrap">
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th (click)="sortBy('symbol')">Symbol</th>
+            <th>Title</th>
+            <th (click)="sortBy('closedAt')">Closed</th>
+            <th>Opened</th>
+            <th (click)="sortBy('holdingDays')" class="num">Days</th>
+            <th (click)="sortBy('qty')" class="num">Qty</th>
+            <th (click)="sortBy('buyValue')" class="num">Buy Value</th>
+            <th (click)="sortBy('sellValue')" class="num">Sell Value</th>
+            <th class="num">Charges</th>
+            <th (click)="sortBy('netPl')" class="num">Net P/L</th>
+            <th (click)="sortBy('plPct')" class="num">P/L %</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let row of viewRows(); trackBy: trackByGroupId">
+            <td>
+              <div class="symbol-cell">
+                <div class="symbol">{{ row.symbol }}</div>
+                <div class="exchange">{{ row.exchange || '—' }}</div>
+              </div>
+            </td>
+
+            <td>
+              <div class="title-cell">
+                <div class="thesis">{{ row.thesisTitle || '—' }}</div>
+                <div class="tags">
+                  <span *ngIf="row.strategyTag" class="chip">{{ row.strategyTag }}</span>
+                  <span *ngIf="row.timeframe" class="chip">{{ row.timeframe }}</span>
+                  <span class="chip status-chip">{{ row.status }}</span>
+                </div>
+              </div>
+            </td>
+
+            <td>{{ row.closedAt ? (row.closedAt | date:'dd MMM yyyy') : '—' }}</td>
+            <td>{{ row.openedAt ? (row.openedAt | date:'dd MMM yyyy') : '—' }}</td>
+            <td class="num">{{ row.holdingDays ?? '—' }}</td>
+            <td class="num">{{ row.qty | number:'1.0-4' }}</td>
+            <td class="num">{{ row.buyValue | number:'1.2-2' }}</td>
+            <td class="num">{{ row.sellValue | number:'1.2-2' }}</td>
+            <td class="num">{{ row.charges | number:'1.2-2' }}</td>
+
+            <td class="num">
+              <span class="pill" [ngClass]="badgeClass(row.netPl)">
+                {{ row.netPl | number:'1.2-2' }}
+              </span>
+            </td>
+
+            <td class="num">
+              <span class="pill" [ngClass]="badgeClass(row.plPct)">
+                {{ row.plPct | number:'1.2-2' }}%
+              </span>
+            </td>
+          </tr>
+        </tbody>
+
+        <tfoot>
+          <tr>
+            <td colspan="4">Totals</td>
+            <td class="num">—</td>
+            <td class="num">{{ totalQty() | number:'1.0-4' }}</td>
+            <td class="num">{{ totalBuyValue() | number:'1.2-2' }}</td>
+            <td class="num">{{ totalSellValue() | number:'1.2-2' }}</td>
+            <td class="num">{{ totalCharges() | number:'1.2-2' }}</td>
+            <td class="num" [ngClass]="badgeClass(totalNetPl())">
+              {{ totalNetPl() | number:'1.2-2' }}
+            </td>
+            <td class="num">—</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-card monthly-section" *ngIf="!loading() && !error() && monthly().length > 0">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Monthly Breakdown</div>
+        <div class="section-subtitle">
+          Grouped by close month
+        </div>
+      </div>
+      <div class="section-subtitle">
+        {{ monthly().length }} months
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="report-table monthly-table">
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th class="num">Trades</th>
+            <th class="num">Wins</th>
+            <th class="num">Losses</th>
+            <th class="num">Win %</th>
+            <th class="num">Buy Value</th>
+            <th class="num">Sell Value</th>
+            <th class="num">Charges</th>
+            <th class="num">Net P/L</th>
+            <th class="num">Avg P/L %</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let month of monthly(); trackBy: trackByMonth">
+            <td class="month-name">{{ month.monthLabel }}</td>
+            <td class="num">{{ month.tradeCount }}</td>
+            <td class="num pos">{{ month.winCount }}</td>
+            <td class="num neg">{{ month.lossCount }}</td>
+            <td class="num">{{ month.winRate | number:'1.1-2' }}%</td>
+            <td class="num">{{ month.buyValue | number:'1.2-2' }}</td>
+            <td class="num">{{ month.sellValue | number:'1.2-2' }}</td>
+            <td class="num">{{ month.charges | number:'1.2-2' }}</td>
+            <td class="num">
+              <span class="pill" [ngClass]="badgeClass(month.netPl)">
+                {{ month.netPl | number:'1.2-2' }}
+              </span>
+            </td>
+            <td class="num">
+              <span class="pill" [ngClass]="badgeClass(month.avgPlPct)">
+                {{ month.avgPlPct | number:'1.2-2' }}%
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
