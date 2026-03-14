@@ -8,6 +8,8 @@ import { WatchlistDeviationComponent } from './components/watchlist-deviation/wa
 import { ReturnsComponent } from './components/returns/returns.component';
 import { ReturnsChartComponent } from './components/returns-chart/returns-chart.component';
 import { ClosedSwingReportComponent } from './components/closed-swing-report/closed-swing-report.component';
+import { ScannersComponent } from './components/scanners/scanners.component';
+import { ScanSetupComponent } from './components/scan-setup/scan-setup.component';
 export const routes: Routes = [
   {
     path: '',
@@ -21,6 +23,8 @@ export const routes: Routes = [
       { path: 'watchlist', component: WatchlistDeviationComponent},
       { path: 'returns', component: ReturnsComponent },
       { path: 'closed-swing', component: ClosedSwingReportComponent },
+      { path: 'scanners', component: ScannersComponent },
+      { path: 'scan-setup', component: ScanSetupComponent },
       {path: 'returns/chart/:symbol',component: ReturnsChartComponent
 }
     ],

@@ -1,0 +1,133 @@
+<div class="page">
+
+  <!-- ── Header ────────────────────────────────────────────────────────── -->
+  <div class="pageHeader">
+    <div>
+      <div class="pageTitle">Scan Setup</div>
+      <div class="pageSub">Column schema, tier definitions, and classifier rules for each scan</div>
+    </div>
+
+    <select class="scanSelect" (change)="onSelect($event)" *ngIf="definitions().length > 1">
+      <option *ngFor="let d of definitions()" [value]="d.id">{{ d.name }}</option>
+    </select>
+  </div>
+
+  <!-- ── Loading ───────────────────────────────────────────────────────── -->
+  <div class="skeletonList" *ngIf="loading()">
+    <div class="skeleton" style="height:80px"></div>
+    <div class="skeleton" style="height:180px"></div>
+    <div class="skeleton" style="height:260px"></div>
+  </div>
+
+  <!-- ── Error ─────────────────────────────────────────────────────────── -->
+  <div class="error" *ngIf="error()">{{ error() }}</div>
+
+  <!-- ── Content ───────────────────────────────────────────────────────── -->
+  <ng-container *ngIf="selected() as def">
+
+    <!-- ── 1. Overview card ───────────────────────────────────────────── -->
+    <div class="card">
+      <div class="cardHeader">
+        <span class="cardTitle">Overview</span>
+        <span class="scanIdBadge">{{ def.id }}</span>
+      </div>
+      <p class="description">{{ def.description }}</p>
+      <div class="metaChips">
+        <span class="metaChip">
+          <span class="metaKey">Score column</span>
+          <span class="metaVal">{{ columnForKey(def.scoreKey)?.label ?? def.scoreKey }}</span>
+        </span>
+        <span class="metaChip">
+          <span class="metaKey">Columns</span>
+          <span class="metaVal">{{ def.columns.length }}</span>
+        </span>
+        <span class="metaChip">
+          <span class="metaKey">Tiers</span>
+          <span class="metaVal">{{ def.tiers.length }}</span>
+        </span>
+        <span class="metaChip">
+          <span class="metaKey">Rules</span>
+          <span class="metaVal">{{ def.classifierRules.length }}</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ── 2. Classifier Rules card ───────────────────────────────────── -->
+    <div class="card">
+      <div class="cardHeader">
+        <span class="cardTitle">Classifier Rules</span>
+        <span class="cardSub">Rules within a tier are AND-evaluated · WATCH is the implicit fallback</span>
+      </div>
+
+      <div class="tiersGrid">
+
+        <!-- Tiers: CONFIRMED / WATCH / CAUTION -->
+        <ng-container *ngFor="let tier of def.tiers">
+          <div class="tierBlock" [class]="tierCss(tier.key)">
+            <div class="tierBlockHeader">
+              <span class="tierBadge" [class]="tierCss(tier.key)">{{ tier.label }}</span>
+              <span class="tierKey muted">{{ tier.key }}</span>
+            </div>
+            <p class="tierDescription">{{ tier.description }}</p>
+
+            <!-- Rules for this tier -->
+            <ng-container *ngIf="rulesByTier().get(tier.key) as rules">
+              <div class="rulesList">
+                <div class="ruleRow" *ngFor="let rule of rules">
+                  <span class="ruleCol">{{ columnForKey(rule.columnKey)?.label ?? rule.columnKey }}</span>
+                  <span class="ruleOp">{{ operatorLabel(rule.operator) }}</span>
+                  <span class="ruleVal">{{ formatThreshold(rule.threshold, columnForKey(rule.columnKey)) }}</span>
+                </div>
+              </div>
+            </ng-container>
+
+            <div class="implicitFallback" *ngIf="!rulesByTier().get(tier.key)">
+              <span class="muted">Implicit fallback — rows not matching any other tier</span>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <!-- ── 3. Columns card ────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="cardHeader">
+        <span class="cardTitle">Column Schema</span>
+        <span class="cardSub">{{ def.columns.length }} columns · display order</span>
+      </div>
+
+      <div class="tableWrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Key</th>
+              <th>Label</th>
+              <th>Type</th>
+              <th>Role</th>
+              <th>Highlight</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let col of def.columns; let i = index" [class]="'role-' + col.role.toLowerCase()">
+              <td class="muted num">{{ i + 1 }}</td>
+              <td class="keyCell">{{ col.key }}</td>
+              <td class="labelCell">{{ col.label }}</td>
+              <td><span class="typeBadge">{{ typeLabel(col.type) }}</span></td>
+              <td><span class="roleBadge" [class]="'role-' + col.role.toLowerCase()">{{ roleBadge(col.role) }}</span></td>
+              <td>
+                <span class="hlBadge"
+                      [class.hlHigh]="col.highlight === 'HIGH'"
+                      [class.hlLow]="col.highlight === 'LOW'">
+                  {{ highlightBadge(col.highlight) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </ng-container>
+</div>

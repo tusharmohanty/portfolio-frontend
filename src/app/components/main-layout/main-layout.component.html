@@ -85,6 +85,20 @@
        [routerLinkActiveOptions]="{ exact: true }">
       Core
     </a>
+
+    <a class="tab"
+       routerLink="/scanners"
+       routerLinkActive="active"
+       [routerLinkActiveOptions]="{ exact: true }">
+      Scanners
+    </a>
+
+    <a class="tab"
+       routerLink="/scan-setup"
+       routerLinkActive="active"
+       [routerLinkActiveOptions]="{ exact: true }">
+      Scan Setup
+    </a>
   </div>
 
   <div class="content" #contentEl (scroll)="onContentScroll($event)">

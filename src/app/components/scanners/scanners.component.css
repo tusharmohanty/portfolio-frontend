@@ -1,0 +1,240 @@
+.page {
+  padding: var(--page-pad);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 2px 12px;
+}
+
+.pageTitle { font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
+.pageSub   { margin-top: 3px; font-size: 12px; color: var(--muted); max-width: 600px; }
+
+.scanSelect {
+  padding: 9px 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  min-width: 200px;
+}
+.scanSelect:focus { border-color: var(--accent); }
+
+/* ── Summary bar ───────────────────────────────────────────────────────── */
+.summaryBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.summaryLeft { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.asOf   { font-size: 12px; }
+.dot    { color: var(--border); }
+
+.tierPills { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.tierPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-faint);
+  background: rgba(255,255,255,0.04);
+  cursor: default;
+}
+
+.tierDot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.8;
+}
+
+.tierCount { font-weight: 800; }
+
+/* ── Rules legend ──────────────────────────────────────────────────────── */
+.rulesLegend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  font-size: 12px;
+}
+
+.rulesLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.rulePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-faint);
+  background: rgba(255,255,255,0.04);
+  font-size: 12px;
+}
+
+.ruleTierLabel { font-weight: 700; margin-right: 2px; }
+
+/* ── Tier section ──────────────────────────────────────────────────────── */
+.tierSection { margin-bottom: 20px; }
+
+.tierHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--r-md) var(--r-md) 0 0;
+  border: 1px solid var(--border-faint);
+  border-bottom: none;
+  background: rgba(255,255,255,0.03);
+}
+
+.tierHeaderLeft { display: flex; align-items: center; gap: 10px; }
+.tierDesc       { font-size: 12px; color: var(--muted); }
+.tierHeaderCount { font-size: 13px; font-weight: 800; color: var(--muted); }
+
+.tierBadge {
+  font-size: 11px;
+  font-weight: 900;
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* ── Tier colour tokens ────────────────────────────────────────────────── */
+.confirmed,
+.tierPill.confirmed,
+.rulePill.confirmed,
+.tierHeader.confirmed  {
+  color: var(--pos);
+  border-color: var(--pos-border);
+}
+.tierHeader.confirmed  { background: var(--pos-bg); }
+.tierBadge.confirmed   { background: var(--pos-bg); border: 1px solid var(--pos-border); color: var(--pos); }
+
+.watch,
+.tierPill.watch,
+.rulePill.watch,
+.tierHeader.watch  {
+  color: #f5c842;
+  border-color: rgba(245,200,66,0.25);
+}
+.tierHeader.watch  { background: rgba(245,200,66,0.06); }
+.tierBadge.watch   { background: rgba(245,200,66,0.10); border: 1px solid rgba(245,200,66,0.30); color: #f5c842; }
+
+.caution,
+.tierPill.caution,
+.rulePill.caution,
+.tierHeader.caution  {
+  color: var(--neg);
+  border-color: var(--neg-border);
+}
+.tierHeader.caution  { background: var(--neg-bg); }
+.tierBadge.caution   { background: var(--neg-bg); border: 1px solid var(--neg-border); color: var(--neg); }
+
+/* ── Table ─────────────────────────────────────────────────────────────── */
+.tableWrap {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+}
+
+.table { width: 100%; border-collapse: collapse; }
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-faint);
+  text-align: left;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child td { border-bottom: none; }
+
+.table th {
+  font-size: 12px;
+  color: var(--muted);
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+}
+
+.table th.num,
+.table td.num { text-align: right; }
+
+.scoreCol  { background: rgba(138,180,255,0.05); }
+.scoreCell { font-weight: 800; color: var(--accent); }
+
+/* ── Row tier tints ────────────────────────────────────────────────────── */
+.row-confirmed { background: rgba(60,220,140,0.04); }
+.row-watch     { background: transparent; }
+.row-caution   { background: rgba(255,90,120,0.04); }
+
+/* ── Symbol cell ───────────────────────────────────────────────────────── */
+.colSymbol  { min-width: 120px; }
+
+.symbolCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chartBtn {
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  opacity: 0.75;
+  line-height: 1;
+}
+.chartBtn:hover { opacity: 1; }
+
+.sym { font-weight: 700; font-size: 13px; }
+
+/* ── Cell with pass/fail badge ─────────────────────────────────────────── */
+.cellInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.passFail {
+  font-size: 11px;
+  font-weight: 900;
+  width: 16px;
+  text-align: center;
+}
+.passFail.pass { color: var(--pos); }
+.passFail.fail { color: var(--neg); }
+
+/* ── Skeleton ──────────────────────────────────────────────────────────── */
+.skeletonList { display: grid; gap: 8px; }
+.skeleton     { height: 42px; border-radius: var(--r-md); }
