@@ -1,12 +1,12 @@
 export interface CreateSwingGroupRequest {
-  tradingsymbol: string;
+  symbol: string;
   exchange: string;
-  thesisTitle?: string;
+  thesisTitle: string;
   thesisNotes?: string;
   strategyTag?: string;
   timeframe?: string;
 }
 
 export interface AddTradesToGroupRequest {
-  kiteTradeIds: number[]; // send numbers
+  kiteTradeIds: number[];
 }
