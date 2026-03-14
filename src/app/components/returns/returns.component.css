@@ -1,113 +1,87 @@
+/* ---- page ---- */
 .page {
-  padding: 14px;
-  background: #0b0f14;
-  color: #e8eef7;
+  padding: var(--page-pad);
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto;
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial;
 }
 
-/* =========================
-   Header
-   ========================= */
-
+/* ---- header ---- */
 .header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
-  flex-wrap: wrap; /* ✅ allows controls to wrap */
+  flex-wrap: wrap;
 }
 
-.title { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
-.subtle { font-size: 12px; color: #9bb0c9; margin-top: 4px; }
+.title  { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
+.subtle { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
 .controls {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;          /* ✅ allows search to show */
+  flex-wrap: wrap;
   justify-content: flex-end;
   row-gap: 8px;
-}
-
-.btn {
-  background: #18202b;
-  border: 1px solid #233042;
-  color: #e8eef7;
-  padding: 8px 10px;
-  border-radius: 12px;
-  font-weight: 600;
 }
 
 .search {
   height: 34px;
   padding: 0 10px;
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.12);
+  border: 1px solid var(--border-faint);
   background: rgba(255,255,255,0.06);
   color: inherit;
   outline: none;
-
-  min-width: 160px;   /* ✅ prevents collapse */
-  flex: 1 1 200px;    /* ✅ responsive */
+  min-width: 160px;
+  flex: 1 1 200px;
   max-width: 240px;
 }
-.search::placeholder { opacity: 0.7; }
 
-.toggle { display: flex; gap: 8px; align-items: center; color: #9bb0c9; font-size: 12px; }
+.search::placeholder { color: var(--muted); }
+.toggle { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 12px; }
 
-/* =========================
-   Card + table container
-   ========================= */
-
+/* ---- card + table container ---- */
 .card {
-  background: #0f151d;
-  border: 1px solid #1c2634;
-  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
   box-shadow: 0 10px 25px rgba(0,0,0,0.35);
 }
 
-.table {
-  width: 100%;
-  overflow-x: hidden; /* ✅ hide scrollbar normally */
-}
+.table { width: 100%; overflow-x: hidden; }
+@media (max-width: 520px) { .table { overflow-x: auto; } }
 
-@media (max-width: 520px) {
-  .table { overflow-x: auto; } /* fallback on tiny screens */
-}
-
-/* =========================
-   Rows + cells
-   ========================= */
-
+/* ---- CSS-grid rows (not <table> element) ---- */
 .row {
   display: grid;
   gap: 8px;
-  padding: 10px 10px;
-  border-top: 1px solid #17202c;
+  padding: 10px;
+  border-top: 1px solid var(--border-faint);
   align-items: center;
-
-  /* ✅ default grid */
   grid-template-columns:
-    minmax(92px, 1.35fr)  /* Symbol */
-    minmax(72px, 0.85fr)  /* Close */
-    minmax(52px, 0.62fr)  /* D% */
-    minmax(52px, 0.62fr)  /* W% */
-    minmax(52px, 0.62fr)  /* M% */
-    minmax(52px, 0.62fr)  /* ATR% */
-    minmax(72px, 0.75fr)  /* Vol Ratio */
-    minmax(72px, 0.70fr); /* Trend */
+    minmax(92px, 1.35fr)  /* Symbol  */
+    minmax(72px, 0.85fr)  /* Close   */
+    minmax(52px, 0.62fr)  /* D%      */
+    minmax(52px, 0.62fr)  /* W%      */
+    minmax(52px, 0.62fr)  /* M%      */
+    minmax(52px, 0.62fr)  /* ATR%    */
+    minmax(72px, 0.75fr)  /* Vol     */
+    minmax(72px, 0.70fr); /* Trend   */
 }
 
 .row.head {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #0f151d;
+  background: var(--surface);
   border-top: 0;
   font-size: 12px;
-  color: #9bb0c9;
+  color: var(--muted);
   user-select: none;
 }
 
@@ -116,28 +90,31 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  min-width: 0; /* ✅ important for CSS grid */
+  min-width: 0;
 }
+
 .cell.num { text-align: right; font-variant-numeric: tabular-nums; }
 .cell.sym { min-width: 0; }
 .cell.sig { text-align: center; }
 
-.row.head .cell { cursor: pointer; }
+.row.head .cell     { cursor: pointer; }
 .row.head .cell.sig { cursor: default; }
 .arrow { margin-left: 6px; opacity: 0.85; }
 
 .symMain { font-weight: 750; overflow: hidden; text-overflow: ellipsis; }
-.symSub { font-size: 11px; color: #9bb0c9; margin-top: 2px; }
+.symSub  { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-.pos { color: #8ff0a4; }
-.neg { color: #ff8b8b; }
+/* ---- chart button ---- */
+.chartBtn { background: transparent; border: 0; padding: 0; cursor: pointer; color: inherit; opacity: 0.85; font-size: 11px; }
+.chartBtn:hover { opacity: 1; text-decoration: underline; }
 
+/* ---- badge / pill ---- */
 .badge {
   display: inline-block;
   padding: 5px 10px;
   border-radius: 999px;
-  background: #18202b;
-  border: 1px solid #233042;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   font-weight: 700;
   font-size: 11px;
 }
@@ -146,81 +123,51 @@
   display: inline-block;
   padding: 5px 9px;
   border-radius: 999px;
-  border: 1px solid #2a3a50;
-  background: #111a24;
+  border: 1px solid var(--border);
+  background: var(--surface);
   font-size: 11px;
-  color: #9bb0c9;
+  color: var(--muted);
 }
+
 .pill.on {
-  border-color: #2f6bff44;
-  background: #14223a;
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
   color: #cfe0ff;
 }
 
-/* =========================
-   Chart button
-   ========================= */
-
-.chartBtn {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  opacity: 0.85;
-  font-size: 11px; /* reduce footprint */
-}
-.chartBtn:hover { opacity: 1; text-decoration: underline; }
-
-/* =========================
-   PULLBACKS mode grid
-   ========================= */
-
+/* ---- PULLBACKS mode grid ---- */
 .table.compact .row {
   grid-template-columns:
-    minmax(90px, 1.25fr)  /* Symbol */
-    minmax(70px, 0.82fr)  /* Close */
-    minmax(50px, 0.60fr)  /* D% */
-    minmax(50px, 0.60fr)  /* W% */
-    minmax(50px, 0.60fr)  /* M% */
-    minmax(50px, 0.60fr)  /* ATR% */
-    minmax(70px, 0.70fr)  /* Vol Ratio */
-    minmax(58px, 0.60fr)  /* Δ ATR */
-    minmax(58px, 0.60fr)  /* Zone */
-    minmax(82px, 0.78fr)  /* ATR Stop */
-    minmax(82px, 0.78fr); /* Trend Stop */
+    minmax(90px, 1.25fr)
+    minmax(70px, 0.82fr)
+    minmax(50px, 0.60fr)
+    minmax(50px, 0.60fr)
+    minmax(50px, 0.60fr)
+    minmax(50px, 0.60fr)
+    minmax(70px, 0.70fr)
+    minmax(58px, 0.60fr)
+    minmax(58px, 0.60fr)
+    minmax(82px, 0.78fr)
+    minmax(82px, 0.78fr);
 }
 
-/* =========================
-   Responsive compression
-   ========================= */
-
+/* ---- responsive ---- */
 @media (max-width: 1100px) {
   .row {
     gap: 6px;
     grid-template-columns:
-      minmax(86px, 1.25fr)
-      minmax(68px, 0.82fr)
-      minmax(48px, 0.58fr)
-      minmax(48px, 0.58fr)
-      minmax(48px, 0.58fr)
-      minmax(48px, 0.58fr)
-      minmax(66px, 0.70fr)
-      minmax(66px, 0.65fr);
+      minmax(86px, 1.25fr) minmax(68px, 0.82fr)
+      minmax(48px, 0.58fr) minmax(48px, 0.58fr)
+      minmax(48px, 0.58fr) minmax(48px, 0.58fr)
+      minmax(66px, 0.70fr) minmax(66px, 0.65fr);
   }
-
   .table.compact .row {
     grid-template-columns:
-      minmax(84px, 1.15fr)
-      minmax(66px, 0.80fr)
-      minmax(46px, 0.56fr)
-      minmax(46px, 0.56fr)
-      minmax(46px, 0.56fr)
-      minmax(46px, 0.56fr)
-      minmax(64px, 0.68fr)
-      minmax(54px, 0.58fr)
-      minmax(54px, 0.58fr)
-      minmax(76px, 0.72fr)
+      minmax(84px, 1.15fr) minmax(66px, 0.80fr)
+      minmax(46px, 0.56fr) minmax(46px, 0.56fr)
+      minmax(46px, 0.56fr) minmax(46px, 0.56fr)
+      minmax(64px, 0.68fr) minmax(54px, 0.58fr)
+      minmax(54px, 0.58fr) minmax(76px, 0.72fr)
       minmax(76px, 0.72fr);
   }
 }
@@ -230,78 +177,45 @@
     gap: 5px;
     padding: 9px 8px;
     grid-template-columns:
-      minmax(78px, 1.15fr)
-      minmax(64px, 0.78fr)
-      minmax(44px, 0.54fr)
-      minmax(44px, 0.54fr)
-      minmax(44px, 0.54fr)
-      minmax(44px, 0.54fr)
-      minmax(60px, 0.64fr)
-      minmax(60px, 0.60fr);
+      minmax(78px, 1.15fr) minmax(64px, 0.78fr)
+      minmax(44px, 0.54fr) minmax(44px, 0.54fr)
+      minmax(44px, 0.54fr) minmax(44px, 0.54fr)
+      minmax(60px, 0.64fr) minmax(60px, 0.60fr);
   }
-
   .table.compact .row {
     grid-template-columns:
-      minmax(76px, 1.05fr)
-      minmax(62px, 0.76fr)
-      minmax(42px, 0.52fr)
-      minmax(42px, 0.52fr)
-      minmax(42px, 0.52fr)
-      minmax(42px, 0.52fr)
-      minmax(58px, 0.62fr)
-      minmax(50px, 0.54fr)
-      minmax(50px, 0.54fr)
-      minmax(70px, 0.66fr)
+      minmax(76px, 1.05fr) minmax(62px, 0.76fr)
+      minmax(42px, 0.52fr) minmax(42px, 0.52fr)
+      minmax(42px, 0.52fr) minmax(42px, 0.52fr)
+      minmax(58px, 0.62fr) minmax(50px, 0.54fr)
+      minmax(50px, 0.54fr) minmax(70px, 0.66fr)
       minmax(70px, 0.66fr);
   }
-
-  .cell { font-size: 12px; }
+  .cell   { font-size: 12px; }
   .symSub { font-size: 10px; }
 }
 
 @media (max-width: 740px) {
   .row {
     grid-template-columns:
-      minmax(72px, 1.05fr)
-      minmax(60px, 0.72fr)
-      minmax(40px, 0.50fr)
-      minmax(40px, 0.50fr)
-      minmax(40px, 0.50fr)
-      minmax(40px, 0.50fr)
-      minmax(56px, 0.60fr)
-      minmax(56px, 0.56fr);
+      minmax(72px, 1.05fr) minmax(60px, 0.72fr)
+      minmax(40px, 0.50fr) minmax(40px, 0.50fr)
+      minmax(40px, 0.50fr) minmax(40px, 0.50fr)
+      minmax(56px, 0.60fr) minmax(56px, 0.56fr);
   }
-
   .table.compact .row {
     grid-template-columns:
-      minmax(70px, 0.95fr)
-      minmax(58px, 0.70fr)
-      minmax(38px, 0.48fr)
-      minmax(38px, 0.48fr)
-      minmax(38px, 0.48fr)
-      minmax(38px, 0.48fr)
-      minmax(54px, 0.58fr)
-      minmax(46px, 0.50fr)
-      minmax(46px, 0.50fr)
-      minmax(64px, 0.60fr)
+      minmax(70px, 0.95fr) minmax(58px, 0.70fr)
+      minmax(38px, 0.48fr) minmax(38px, 0.48fr)
+      minmax(38px, 0.48fr) minmax(38px, 0.48fr)
+      minmax(54px, 0.58fr) minmax(46px, 0.50fr)
+      minmax(46px, 0.50fr) minmax(64px, 0.60fr)
       minmax(64px, 0.60fr);
   }
 }
 
-/* =========================
-   Mobile header layout
-   ========================= */
-
 @media (max-width: 820px) {
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .controls {
-    justify-content: flex-start;
-  }
-  .search {
-    max-width: 100%;
-    flex: 1 1 100%;
-  }
+  .header   { flex-direction: column; align-items: stretch; }
+  .controls { justify-content: flex-start; }
+  .search   { max-width: 100%; flex: 1 1 100%; }
 }

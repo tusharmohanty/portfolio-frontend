@@ -1,10 +1,6 @@
-:host {
-  display: block;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
+:host { display: block; height: 100%; min-height: 0; overflow: hidden; }
 
+/* ---- page layout ---- */
 .page {
   height: 100%;
   min-height: 0;
@@ -12,8 +8,12 @@
   flex-direction: column;
   gap: 12px;
   overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  padding: var(--page-pad);
 }
 
+/* ---- header ---- */
 .header {
   flex: 0 0 auto;
   display: flex;
@@ -22,87 +22,48 @@
   gap: 12px;
 }
 
-.controls {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: nowrap;
-}
+.controls   { display: flex; align-items: center; gap: 10px; flex-wrap: nowrap; }
+.titleRow   { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 14px; }
+.symbol     { font-weight: 600; margin-right: 16px; }
+.legend     { font-weight: 500; }
 
-.titleRow {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  font-size: 14px;
-}
-
-.symbol {
-  font-weight: 600;
-  margin-right: 16px;
-}
-
-.legend {
-  font-weight: 500;
-}
-
-.legend.dailyPrice { color: #e5e7eb; }
+/* chart series legend colours */
+.legend.dailyPrice  { color: var(--text); }
 .legend.weeklyPrice { color: #38bdf8; }
-.legend.dailyVolume { color: rgba(96, 125, 139, 0.95); }
-.legend.weeklyVolume { color: rgba(56, 189, 248, 0.95); }
+.legend.dailyVolume { color: rgba(96,125,139,0.95); }
+.legend.weeklyVolume{ color: rgba(56,189,248,0.95); }
+.legend.ema20       { color: #00bcd4; }
+.legend.ema50       { color: #ff9800; }
+.legend.ema200      { color: #e91e63; }
+.legend.rsi         { color: #9c27b0; }
+.legend.macd        { color: #4caf50; }
 
-.legend.ema20 { color: #00bcd4; }
-.legend.ema50 { color: #ff9800; }
-.legend.ema200 { color: #e91e63; }
-.legend.rsi { color: #9c27b0; }
-.legend.macd { color: #4caf50; }
-
-.displayModes {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+/* ---- mode toggle ---- */
+.displayModes { display: flex; align-items: center; gap: 10px; }
 
 .modeGroup {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: rgba(15,23,42,0.55);
 }
 
-.modeLabel {
-  font-size: 12px;
-  color: #94a3b8;
-  font-weight: 600;
-  margin-right: 2px;
-}
-
-.btnMode {
-  padding: 6px 10px;
-  min-width: 68px;
-}
+.modeLabel { font-size: 12px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+.btnMode   { padding: 6px 10px; min-width: 68px; }
 
 .btnMode.active {
-  background: rgba(56, 189, 248, 0.14);
-  border-color: rgba(56, 189, 248, 0.35);
+  background: rgba(56,189,248,0.14);
+  border-color: rgba(56,189,248,0.35);
   color: #e2f3ff;
 }
 
-.indicators {
-  position: relative;
-}
-
-.indicators > summary {
-  list-style: none;
-  cursor: pointer;
-}
-
-.indicators > summary::-webkit-details-marker {
-  display: none;
-}
+/* ---- indicator menu ---- */
+.indicators { position: relative; }
+.indicators > summary             { list-style: none; cursor: pointer; }
+.indicators > summary::-webkit-details-marker { display: none; }
 
 .indicatorMenu {
   position: absolute;
@@ -112,27 +73,18 @@
   display: grid;
   gap: 8px;
   padding: 10px 12px;
-  border-radius: 12px;
-  background: #0b1220;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
   min-width: 160px;
 }
 
-.chk {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  user-select: none;
-  color: #cbd5e1;
-}
+.chk { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; user-select: none; color: var(--text); }
 
-.btnGhost {
-  background: transparent;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-}
+.btnGhost { background: transparent; border: 1px solid var(--border); }
 
+/* ---- chart panes ---- */
 .chartGrid {
   flex: 1 1 auto;
   min-height: 0;
@@ -143,107 +95,44 @@
   overflow: hidden;
 }
 
-.pane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
+.pane        { display: flex; flex-direction: column; min-height: 0; }
+.paneTopbar  { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; flex-wrap: wrap; }
+.paneLabel   { flex: 0 0 auto; font-size: 12px; color: var(--muted); }
+.paneBody    { flex: 1 1 auto; min-height: 0; border-radius: var(--r-md); overflow: hidden; }
 
-.paneTopbar {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 6px;
-  flex-wrap: wrap;
-}
+.pricePane { flex: 1 1 auto; min-height: 0; }
+.rsiPane   { flex: 0 0 150px; }
+.macdPane  { flex: 0 0 170px; }
 
-.paneLabel {
-  flex: 0 0 auto;
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.ohlcStrip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+/* ---- OHLC strip ---- */
+.ohlcStrip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .ohlcBlock {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: var(--text);
   padding: 4px 8px;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.55);
-  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15,23,42,0.55);
+  border: 1px solid var(--border);
 }
 
-.ohlcBlock.daily {
-  border-color: rgba(229, 231, 235, 0.18);
-}
+.ohlcBlock.daily  { border-color: var(--border); }
+.ohlcBlock.weekly { border-color: rgba(56,189,248,0.25); }
+.ohlcTag  { font-weight: 700; font-size: 11px; color: var(--muted); }
+.ohlcDate { font-weight: 600; color: var(--text); }
+.ohlcText { white-space: nowrap; }
 
-.ohlcBlock.weekly {
-  border-color: rgba(56, 189, 248, 0.25);
-}
-
-.ohlcTag {
-  font-weight: 700;
-  font-size: 11px;
-  color: #94a3b8;
-}
-
-.ohlcDate {
-  font-weight: 600;
-  color: #e2e8f0;
-}
-
-.ohlcText {
-  white-space: nowrap;
-}
-
-.paneBody {
-  flex: 1 1 auto;
-  min-height: 0;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.pricePane {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.rsiPane {
-  flex: 0 0 150px;
-}
-
-.macdPane {
-  flex: 0 0 170px;
-}
-
-.chartGrid.compact .pricePane {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.chartGrid.oneExtra .pricePane {
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
+/* ---- loading overlay ---- */
 .overlay {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: #cbd5e1;
-  background: rgba(11, 18, 32, 0.55);
-  border-radius: 12px;
+  color: var(--muted);
+  background: rgba(11,15,20,0.55);
+  border-radius: var(--r-md);
   pointer-events: none;
 }

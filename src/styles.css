@@ -1,19 +1,344 @@
-body {
-  background: #0a0a0a;
-  color: #e0e0e0;
-  font-family: monospace;
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  /* Backgrounds */
+  --bg:           #0b0f14;
+  --surface:      #0f1620;
+  --surface-2:    #121a24;
+
+  /* Text */
+  --text:         #e7edf5;
+  --muted:        #91a0b5;
+
+  /* Borders */
+  --border:       #1e2a3a;
+  --border-faint: rgba(255, 255, 255, 0.07);
+
+  /* Semantic colours */
+  --pos:          #3cdc8c;
+  --neg:          #ff5a78;
+  --accent:       #8ab4ff;
+
+  /* Tinted surfaces */
+  --pos-bg:       rgba(60, 220, 140, 0.08);
+  --pos-border:   #1f4b35;
+  --neg-bg:       rgba(255, 90, 120, 0.08);
+  --neg-border:   #4b1f2a;
+  --accent-bg:    rgba(138, 180, 255, 0.10);
+  --accent-border:rgba(138, 180, 255, 0.30);
+
+  /* Radii */
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  18px;
+
+  /* Page padding */
+  --page-pad: 14px;
 }
 
-.terminal-table {
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select, textarea { font: inherit; }
+
+/* ============================================================
+   COLOUR UTILITIES
+   ============================================================ */
+.pos   { color: var(--pos);   }
+.neg   { color: var(--neg);   }
+.neu,
+.flat  { color: var(--muted); }
+.muted { color: var(--muted); }
+
+/* ============================================================
+   PAGE SHELL
+   ============================================================ */
+.page {
+  padding: var(--page-pad);
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ============================================================
+   TOPBAR (title row + controls row)
+   ============================================================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.page-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+/* ============================================================
+   BUTTON
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.btn:hover:not(:disabled) { filter: brightness(1.12); }
+.btn:disabled              { opacity: 0.5; cursor: not-allowed; }
+
+.btn.primary {
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: #ddeeff;
+}
+
+.btn.ghost { background: transparent; }
+
+.btn.danger {
+  background: var(--neg-bg);
+  border-color: var(--neg-border);
+}
+
+/* ============================================================
+   CARD
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+/* ============================================================
+   TABLE WRAPPER + TABLE
+   ============================================================ */
+.tableWrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: auto;
+}
+
+.table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.terminal-table th,
-.terminal-table td {
-  border-bottom: 1px solid #333;
-  padding: 6px;
+.table th {
+  text-align: left;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  white-space: nowrap;
+  user-select: none;
 }
 
-.pos { color: #00ff90; }
-.neg { color: #ff4d4d; }
+.table td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--border-faint);
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.table th.clickable {
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+.table th.clickable:hover  { background: rgba(255,255,255,0.04); }
+.table th.clickable:active { transform: translateY(1px); }
+
+.table th.active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+  background: var(--accent-bg);
+}
+
+.table th .thInner {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.table th.clickable:focus,
+.table th.clickable:focus-visible {
+  outline: 2px solid rgba(255,255,255,0.25);
+  outline-offset: -2px;
+}
+
+.table th.num,
+.table td.num { text-align: right; }
+
+.table tbody tr:hover { background: rgba(255,255,255,0.015); }
+
+/* PnL accent bars on rows */
+.table tbody tr.pos-row { box-shadow: inset 4px 0 0 0 rgba(60,220,140,0.35); }
+.table tbody tr.neg-row { box-shadow: inset 4px 0 0 0 rgba(255,90,120,0.35); }
+
+/* ============================================================
+   CHIP / PILL
+   ============================================================ */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill.pos  { background: var(--pos-bg);  border-color: var(--pos-border); color: var(--pos); }
+.pill.neg  { background: var(--neg-bg);  border-color: var(--neg-border); color: var(--neg); }
+.pill.flat,
+.pill.neu  { background: rgba(145,160,181,0.07); border-color: var(--border); color: var(--muted); }
+
+/* ============================================================
+   ERROR BANNER
+   ============================================================ */
+.error-box {
+  background: var(--neg-bg);
+  border: 1px solid var(--neg-border);
+  color: #ffd7df;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+/* backwards-compat alias used by several components */
+.error {
+  background: var(--neg-bg);
+  border: 1px solid var(--neg-border);
+  color: #ffd7df;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  margin: 10px 0;
+  font-size: 13px;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.state-empty {
+  border: 1px dashed var(--border);
+  border-radius: var(--r-md);
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 13px;
+}
+
+/* ============================================================
+   DRAWER (right-side slide panel)
+   ============================================================ */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 40;
+}
+
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(480px, 92vw);
+  height: 100%;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.drawer-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.drawer-title { font-size: 15px; font-weight: 800; }
+
+.drawer-body {
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+/* ============================================================
+   SKELETON / PULSE
+   ============================================================ */
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 0.9; }
+}
+
+.skeleton {
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border-faint);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* ============================================================
+   MISC HELPERS
+   ============================================================ */
+.num     { text-align: right; }
+.tabular { font-variant-numeric: tabular-nums; }
+.sym     { font-weight: 800; }
+.small   { font-size: 12px; }

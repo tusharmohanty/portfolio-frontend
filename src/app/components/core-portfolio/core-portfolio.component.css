@@ -1,27 +1,24 @@
+/* ---- page ---- */
 .page {
-  padding: 12px;
-  color: #e8ecf1;
+  padding: var(--page-pad);
+  color: var(--text);
+  background: var(--bg);
+  min-height: 100vh;
 }
 
-.state {
-  padding: 24px;
-  opacity: 0.9;
-}
-.state.error {
-  color: #ff6b6b;
-}
+/* ---- state ---- */
+.state       { padding: 24px; color: var(--muted); }
+.state.error { color: var(--neg); }
 
-.pos { color: #22c55e; }
-.neg { color: #ef4444; }
-
+/* ---- summary strip ---- */
 .summary {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(15, 17, 21, 0.92);
+  background: rgba(15,17,21,0.92);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
+  border: 1px solid var(--border-faint);
+  border-radius: var(--r-lg);
   padding: 12px;
   margin-bottom: 12px;
 }
@@ -33,32 +30,36 @@
   align-items: end;
 }
 
-.metric .label { font-size: 12px; opacity: 0.7; }
+.metric .label { font-size: 12px; color: var(--muted); }
 .metric .value { font-size: 22px; font-weight: 700; }
-.metric .sub { font-size: 13px; opacity: 0.9; }
-.metric.right { text-align: right; }
+.metric .sub   { font-size: 13px; color: var(--muted); }
+.metric.right  { text-align: right; }
 
+/* ---- segmented control ---- */
 .segmented {
   display: inline-flex;
   gap: 6px;
   padding: 4px;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-faint);
   background: rgba(255,255,255,0.03);
   justify-content: center;
   align-items: center;
 }
+
 .segmented button {
   padding: 6px 10px;
   border-radius: 999px;
   border: 0;
   background: transparent;
-  color: #e8ecf1;
+  color: var(--text);
   opacity: 0.8;
   cursor: pointer;
 }
+
 .segmented button.active {
-  background: rgba(59, 130, 246, 0.25);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
   opacity: 1;
 }
 
@@ -69,27 +70,14 @@
   overflow-x: auto;
   padding-bottom: 4px;
 }
-.chip {
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-  color: #e8ecf1;
-  border-radius: 999px;
-  padding: 8px 10px;
-  cursor: pointer;
-  white-space: nowrap;
-}
 
-/* Cards */
-.cards {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
+/* ---- card list (mobile / tablet) ---- */
+.cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
 
 .card {
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(24, 28, 34, 0.85);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border-faint);
+  background: rgba(24,28,34,0.85);
   padding: 12px;
 }
 
@@ -99,20 +87,14 @@
   align-items: baseline;
   gap: 12px;
 }
-.sym { font-weight: 700; font-size: 16px; }
+
+.sym   { font-weight: 700; font-size: 16px; }
 .money { font-weight: 700; }
-.muted { opacity: 0.7; font-size: 12px; }
 .right { text-align: right; }
 
-.weights { margin-top: 10px; }
-.weights .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.weights .chip {
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.03);
-  border-radius: 999px;
-  padding: 6px 8px;
-  font-size: 12px;
-}
+/* ---- weights bar ---- */
+.weights          { margin-top: 10px; }
+.weights .chips   { display: flex; gap: 6px; flex-wrap: wrap; }
 .weights .bar {
   margin-top: 8px;
   height: 10px;
@@ -121,19 +103,11 @@
   position: relative;
   overflow: hidden;
 }
-.bar-inv {
-  position: absolute;
-  left: 0; top: 0;
-  height: 4px;
-  background: rgba(59, 130, 246, 0.25);
-}
-.bar-val {
-  position: absolute;
-  left: 0; bottom: 0;
-  height: 6px;
-  background: rgba(59, 130, 246, 0.7);
-}
 
+.bar-inv { position: absolute; left: 0; top: 0;    height: 4px; background: var(--accent-bg); }
+.bar-val { position: absolute; left: 0; bottom: 0; height: 6px; background: rgba(138,180,255,0.7); }
+
+/* ---- pl row ---- */
 .pl-row {
   margin-top: 12px;
   display: grid;
@@ -141,8 +115,9 @@
   gap: 10px;
   align-items: end;
 }
-.pl-row .label { font-size: 12px; opacity: 0.7; }
-.pl-row .big { font-size: 18px; font-weight: 800; }
+
+.pl-row .label { font-size: 12px; color: var(--muted); }
+.pl-row .big   { font-size: 18px; font-weight: 800; }
 
 .prices {
   margin-top: 10px;
@@ -152,72 +127,69 @@
   font-size: 13px;
 }
 
+/* ---- kv (details row) ---- */
+.kv { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.kv span { color: var(--muted); }
+
 .details-btn {
   margin-top: 10px;
   width: 100%;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   padding: 10px;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-faint);
   background: rgba(255,255,255,0.03);
-  color: #e8ecf1;
+  color: var(--text);
   cursor: pointer;
 }
 
 .details-card {
   margin-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--border-faint);
   padding-top: 10px;
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
 }
-.kv {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  font-size: 13px;
-}
-.kv span { opacity: 0.7; }
 
-/* Desktop table only on wide screens */
+/* ---- desktop table (≥1100px) ---- */
 .table {
   display: none;
   margin-top: 12px;
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
+  border: 1px solid var(--border-faint);
+  border-radius: var(--r-lg);
   overflow: hidden;
 }
+
 .table-head, .table-row {
   display: grid;
   grid-template-columns: 1.2fr 0.6fr 1fr 1fr 1fr 0.8fr 1fr 0.8fr 0.8fr 0.8fr 0.8fr 0.8fr;
   gap: 0;
   align-items: center;
 }
+
 .table-head {
   background: rgba(255,255,255,0.03);
   font-size: 12px;
-  opacity: 0.9;
+  color: var(--muted);
 }
-.table-head > div {
-  padding: 10px 10px;
-  cursor: pointer;
-  user-select: none;
-}
-.table-row > div, .table-row > button {
-  padding: 10px 10px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.table-row .num, .table-head .num { text-align: right; }
+
+.table-head > div           { padding: 10px; cursor: pointer; user-select: none; }
+.table-row > div,
+.table-row > button         { padding: 10px; border-top: 1px solid var(--border-faint); }
+.table-row .num,
+.table-head .num            { text-align: right; }
+
 .row-btn {
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--border-faint);
   background: rgba(255,255,255,0.03);
-  color: #e8ecf1;
+  color: var(--text);
   border-radius: 10px;
   padding: 6px 10px;
   cursor: pointer;
 }
+
 .details {
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--border-faint);
   padding: 10px;
   background: rgba(255,255,255,0.02);
   display: grid;
@@ -225,13 +197,5 @@
   gap: 8px 16px;
 }
 
-/* Responsive: iPad gets 2-column cards */
-@media (min-width: 768px) {
-  .cards { grid-template-columns: 1fr 1fr; }
-}
-
-/* Desktop: show table, hide cards */
-@media (min-width: 1100px) {
-  .table { display: block; }
-  .cards { display: none; }
-}
+@media (min-width: 768px)  { .cards { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1100px) { .table { display: block; } .cards { display: none; } }
