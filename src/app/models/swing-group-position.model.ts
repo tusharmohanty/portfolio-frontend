@@ -1,58 +1,50 @@
-export type SwingStatus = 'OPEN' | 'CLOSED';
 export type SwingStatusFilter = 'OPEN' | 'CLOSED' | 'ALL';
 export type SortDir = 'asc' | 'desc';
 
 export type SwingSortKey =
   | 'openedAt'
   | 'updatedAt'
-  | 'pl'           
+  | 'pl'
   | 'plPct'
+  | 'positionSize'
   | 'plPctDaily'
   | 'plPctWeekly'
   | 'plPctMonthly'
   | 'plPct15days'
   | 'targetDeltaPct'
   | 'holdingPeriodDays'
-  | 'positionSize';
+  | 'symbol';
 
 export interface SwingGroupPosition {
   id: number;
-  tradingsymbol: string;
-  exchange: string;
+  symbol: string;
+  exchange?: string;
+  thesisTitle: string;
+  thesisNotes?: string;
+  strategyTag?: string;
+  timeframe?: string;
+  riskNotes?: string;
+  status: string;
+  targetPrice?: number;
+  openedAt?: string;
+  closedAt?: string;
+  createdAt: string;
+  updatedAt: string;
 
-  thesisTitle?: string | null;
-  thesisNotes?: string | null;
-  strategyTag?: string | null;
-  timeframe?: string | null;
-  riskNotes?: string | null;
+  qty?: number;
+  avgBuyPrice?: number;
+  positionSize?: number;
+  ltp?: number;
+  ltpDate?: string;
 
-  status: SwingStatus;
+  pl?: number;
+  plPct?: number;
+  targetDeltaPct?: number;
+  holdingPeriodDays?: number;
 
-  openedAt?: string | null;
-  closedAt?: string | null;
-  createdAt?: string | null;
-  updatedAt?: string | null;
-
-  targetPrice?: number | null;
-
-  qty?: number | null;
-  avgBuyPrice?: number | null;
-  positionSize?: number | null;
-
-  ltp?: number | null;
-  ltpDate?: string | null;
-
-  pl?: number | null;
-  plPct?: number | null;
-
-  targetDeltaPct?: number | null;
-  holdingPeriodDays?: number | null;
-
-  plWeekly?: number | null;
-  plPctDaily?: number | null;
-  plPctWeekly?: number | null;
-  plPctMonthly?: number | null;
-  plPct15days?: number | null;
+  plWeekly?: number;
+  plPctDaily?: number;
+  plPctWeekly?: number;
+  plPct15days?: number;
+  plPctMonthly?: number;
 }
-
-export {};

@@ -3,257 +3,223 @@
     <div>
       <div class="title">All Trades</div>
       <div class="subtle">Search by symbol • Select trades • Assign to a Swing group</div>
-
-      <div class="agg" *ngIf="selectedCount() > 0">
-        <span class="mono">{{ selectedCount() }}</span> selected
-        • Qty: <span class="mono">{{ selectedQty() }}</span>
-        • Buy: <span class="mono">{{ selectedQtyBreakup().buy }}</span>
-        • Sell: <span class="mono">{{ selectedQtyBreakup().sell }}</span>
-        • Net: <span class="mono">{{ selectedQtyBreakup().net }}</span>
-        <span *ngIf="selectedSymbol()"> • Symbol: <span class="mono">{{ selectedSymbol() }}</span></span>
-      </div>
     </div>
 
     <div class="controls">
-      <input class="input"
-             placeholder="Search symbol (e.g. HIKAL)"
-             [ngModel]="q()"
-             (ngModelChange)="q.set($event)" />
       <button class="btn" (click)="load()">Refresh</button>
+      <button class="btn" (click)="toggleAllVisible()">Toggle visible</button>
+      <button class="btn" (click)="clearSelection()">Clear</button>
+      <button class="btn" [disabled]="selectedCount() === 0" (click)="openAssignDrawer()">Assign to Group</button>
+      <button class="btn" [disabled]="selectedCount() === 0" (click)="markSelectedAsCore()">Mark Core</button>
+      <button class="btn" [disabled]="selectedCount() === 0" (click)="removeSelectedFromCore()">Remove Core</button>
     </div>
   </div>
 
-  <div class="actions">
-    <div class="left">
-      <button class="btn" (click)="toggleAllVisible()">Toggle visible</button>
-      <button class="btn ghost" (click)="clearSelection()" [disabled]="selectedCount()===0">Clear</button>
-    </div>
+  <div class="subtle" style="margin-bottom: 10px;">
+    {{ selectedCount() }} selected •
+    Qty: {{ selectedQty() }} •
+    Buy: {{ selectedQtyBreakup().buy }} •
+    Sell: {{ selectedQtyBreakup().sell }} •
+    Net: {{ selectedQtyBreakup().net }} •
+    Symbol: {{ selectedSymbol() || '—' }}
+  </div>
 
-    <div class="right">
-      <div class="chip">{{ selectedCount() }} selected</div>
-
-      <button class="btn primary"
-              (click)="openAssignDrawer()"
-              [disabled]="selectedCount()===0">
-        Assign to Group
-      </button>
-    </div>
-
-    <button class="btn"
-            (click)="markSelectedAsCore()"
-            [disabled]="selectedCount()===0">
-      Mark Core
-    </button>
-
-    <button class="btn ghost"
-            (click)="removeSelectedFromCore()"
-            [disabled]="selectedCount()===0">
-      Remove Core
-    </button>
+  <div style="margin-bottom: 12px;">
+    <input
+      type="text"
+      placeholder="Search symbol"
+      [ngModel]="q()"
+      (ngModelChange)="q.set($event)"
+      style="min-width: 220px;"
+    />
   </div>
 
   <div *ngIf="loading()" class="muted">Loading…</div>
-  <div *ngIf="error()" class="error">{{ error() }}</div>
+  <div *ngIf="!loading() && error()" class="error">{{ error() }}</div>
 
-  <div class="tableWrap" *ngIf="!loading()">
+  <!-- moved above table so it is immediately visible -->
+  <div class="panel" *ngIf="showAssignDrawer()" style="margin-bottom: 14px;">
+    <div class="panelTitle">
+      Assign Trades to Swing Group
+      <button class="btn" style="float:right;" (click)="closeAssignDrawer()">✕</button>
+    </div>
+
+    <div class="panelBody">
+      <div class="subtle" style="margin-bottom: 10px;">
+        {{ selectedCount() }} trades selected • Symbol: {{ selectedSymbol() || '—' }}
+      </div>
+
+      <div *ngIf="assignError()" class="error">{{ assignError() }}</div>
+
+      <div class="mutedLabel">Existing OPEN groups</div>
+      <div class="subtle" style="margin-bottom: 8px;">
+        Matching symbol: {{ selectedSymbol() || '—' }}
+      </div>
+      <div class="subtle" style="margin-bottom: 10px;">
+        Select trades for exactly one symbol to attach to an existing group.
+      </div>
+
+      <div *ngIf="loadingGroups()" class="muted">Loading groups…</div>
+
+      <div *ngIf="!loadingGroups() && canAssignToExistingGroup() && matchingOpenGroups().length === 0" class="muted" style="margin-bottom: 12px;">
+        No OPEN groups found for {{ selectedSymbol() }}. You can create a new one below.
+      </div>
+
+      <div *ngIf="!loadingGroups() && matchingOpenGroups().length > 0" style="margin-bottom: 14px;">
+        <label *ngFor="let g of matchingOpenGroups()" style="display:block; margin-bottom:10px;">
+          <input
+            type="radio"
+            name="selectedGroup"
+            [checked]="selectedGroupId() === g.id"
+            (change)="selectedGroupId.set(g.id)"
+          />
+          <span style="margin-left: 8px;">
+            {{ g.symbol }} • #{{ g.id }}
+          </span>
+
+          <div class="small" style="margin-left: 24px; margin-top: 4px;">
+            {{ g.thesisTitle || 'No thesis title' }}
+          </div>
+          <div class="small" style="margin-left: 24px;">
+            {{ g.exchange || '—' }} • {{ g.strategyTag || '—' }} • {{ g.timeframe || '—' }}
+          </div>
+          <div class="small" style="margin-left: 24px;">
+            Qty: {{ g.qty ?? '—' }}
+            • Avg: {{ g.avgBuyPrice == null ? '—' : (g.avgBuyPrice | number:'1.2-2') }}
+            • P/L %: {{ g.plPct == null ? '—' : (g.plPct | number:'1.2-2') }}
+          </div>
+        </label>
+
+        <button class="btn" [disabled]="addingToGroup() || !selectedGroupId()" (click)="addSelectedTradesToGroup()">
+          {{ addingToGroup() ? 'Working…' : 'Attach to Selected Group' }}
+        </button>
+      </div>
+
+      <div class="mutedLabel" style="margin-top: 18px;">Or create a new group</div>
+      <div class="subtle" style="margin-bottom: 10px;">
+        The selected trades will be attached after creation.
+      </div>
+
+      <div *ngIf="createError()" class="error">{{ createError() }}</div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <label>
+          <div class="mutedLabel">Symbol *</div>
+          <input
+            type="text"
+            [ngModel]="form().symbol"
+            (ngModelChange)="form.set({ ...form(), symbol: $event })"
+          />
+        </label>
+
+        <label>
+          <div class="mutedLabel">Exchange *</div>
+          <select
+            [ngModel]="form().exchange"
+            (ngModelChange)="form.set({ ...form(), exchange: $event })"
+          >
+            <option value="NSE">NSE</option>
+            <option value="BSE">BSE</option>
+          </select>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 12px;">
+        <label>
+          <div class="mutedLabel">Thesis Title</div>
+          <input
+            type="text"
+            [ngModel]="form().thesisTitle"
+            (ngModelChange)="form.set({ ...form(), thesisTitle: $event })"
+          />
+        </label>
+
+        <label>
+          <div class="mutedLabel">Thesis Notes</div>
+          <textarea
+            rows="4"
+            [ngModel]="form().thesisNotes"
+            (ngModelChange)="form.set({ ...form(), thesisNotes: $event })"
+          ></textarea>
+        </label>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+        <label>
+          <div class="mutedLabel">Strategy Tag</div>
+          <input
+            type="text"
+            [ngModel]="form().strategyTag"
+            (ngModelChange)="form.set({ ...form(), strategyTag: $event })"
+          />
+        </label>
+
+        <label>
+          <div class="mutedLabel">Timeframe</div>
+          <input
+            type="text"
+            [ngModel]="form().timeframe"
+            (ngModelChange)="form.set({ ...form(), timeframe: $event })"
+          />
+        </label>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button class="btn" [disabled]="creating()" (click)="createGroupAndAttach()">
+          {{ creating() ? 'Working…' : 'Create New Group & Attach' }}
+        </button>
+
+        <button class="btn" (click)="closeAssignDrawer()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tableWrap" *ngIf="!loading() && !error()">
     <table class="table">
       <thead>
-      <tr>
-        <th style="width:42px;"><input type="checkbox" (change)="toggleAllVisible()"></th>
-        <th (click)="toggleSort('symbol')" class="sortable">Symbol</th>
-        <th>Side</th>
-        <th>Qty</th>
-        <th>Price</th>
-        <th (click)="toggleSort('time')" class="sortable">
-          Time
-          <span *ngIf="sortField()==='time'">
-            {{ sortDir()==='asc' ? '↑' : '↓' }}
-          </span>
-        </th>
-        <th class="mono">TradeId</th>
-        <th class="mono">OrderId</th>
-      </tr>
+        <tr>
+          <th></th>
+          <th class="clickable" (click)="toggleSort('symbol')">
+            <span class="thInner">
+              Symbol
+              <span class="sortMark" *ngIf="sortField()==='symbol'">{{ sortDir()==='asc' ? '↑' : '↓' }}</span>
+            </span>
+          </th>
+          <th>Side</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th class="clickable" (click)="toggleSort('time')">
+            <span class="thInner">
+              Time
+              <span class="sortMark" *ngIf="sortField()==='time'">{{ sortDir()==='asc' ? '↑' : '↓' }}</span>
+            </span>
+          </th>
+          <th>TradeId</th>
+          <th>OrderId</th>
+        </tr>
       </thead>
 
       <tbody>
-      <tr *ngFor="let t of filtered()" [class.sel]="selected().has(t.id)">
-        <td>
-          <input type="checkbox"
-                 [checked]="selected().has(t.id)"
-                 (change)="toggle(t.id)">
-        </td>
-
-        <td>
-          <div class="sym">{{ t.tradingsymbol || '—' }}</div>
-          <div class="muted">{{ t.exchange || '—' }}</div>
-        </td>
-
-        <td>
-          <span class="pill" [class.buy]="side(t)==='BUY'" [class.sell]="side(t)==='SELL'">
-            {{ side(t) }}
-          </span>
-        </td>
-
-        <td>{{ t.quantity ?? '—' }}</td>
-        <td>{{ t.price == null ? '—' : (t.price | number:'1.2-4') }}</td>
-        <td>{{ t.tradeTimestamp ? (t.tradeTimestamp | date:'dd-MMM-yyyy HH:mm') : '—' }}</td>
-
-        <td class="mono">{{ t.tradeId || '—' }}</td>
-        <td class="mono">{{ t.orderId || '—' }}</td>
-      </tr>
+        <tr *ngFor="let t of filtered()">
+          <td>
+            <input
+              type="checkbox"
+              [checked]="selected().has(t.id)"
+              (change)="toggle(t.id)"
+            />
+          </td>
+          <td>
+            <div class="symbol">{{ t.tradingsymbol || '—' }}</div>
+            <div class="small">{{ t.exchange || '—' }}</div>
+          </td>
+          <td>{{ side(t) }}</td>
+          <td>{{ t.quantity ?? '—' }}</td>
+          <td>{{ t.price == null ? '—' : (t.price | number:'1.2-4') }}</td>
+          <td>{{ t.tradeTimestamp ? (t.tradeTimestamp | date:'dd-MMM-yyyy HH:mm') : '—' }}</td>
+          <td>{{ t.tradeId || '—' }}</td>
+          <td>{{ t.orderId || '—' }}</td>
+        </tr>
       </tbody>
     </table>
-  </div>
-
-  <!-- Unified assign drawer -->
-  <div class="overlay" *ngIf="showAssignDrawer()" (click)="closeAssignDrawer()"></div>
-  <div class="drawer" *ngIf="showAssignDrawer()">
-    <div class="drawerHead">
-      <div>
-        <div class="drawerTitle">Assign Trades to Swing Group</div>
-        <div class="subtle">
-          {{ selectedCount() }} trades selected
-          <span *ngIf="selectedSymbol()"> • Symbol: {{ selectedSymbol() }}</span>
-        </div>
-      </div>
-      <button class="btn ghost" (click)="closeAssignDrawer()">✕</button>
-    </div>
-
-    <div *ngIf="assignError()" class="error">{{ assignError() }}</div>
-
-    <div class="form">
-      <!-- Existing groups section -->
-      <div class="sectionBlock">
-        <div class="sectionTitle">Existing OPEN groups</div>
-        <div class="sectionSubtle" *ngIf="selectedSymbol()">
-          Matching symbol: {{ selectedSymbol() }}
-        </div>
-
-        <div *ngIf="!canAssignToExistingGroup()" class="muted">
-          Select trades for exactly one symbol to attach to an existing group.
-        </div>
-
-        <div *ngIf="loadingGroups()" class="muted">Loading groups…</div>
-
-        <div *ngIf="canAssignToExistingGroup() && !loadingGroups() && matchingOpenGroups().length === 0" class="muted emptyState">
-          No OPEN groups found for {{ selectedSymbol() }}.
-          You can create a new one below.
-        </div>
-
-        <div class="groupList" *ngIf="canAssignToExistingGroup() && !loadingGroups() && matchingOpenGroups().length > 0">
-          <label class="groupCard" *ngFor="let g of matchingOpenGroups()">
-            <input type="radio"
-                   name="groupId"
-                   [value]="g.id"
-                   [checked]="selectedGroupId() === g.id"
-                   (change)="selectedGroupId.set(g.id)" />
-
-            <div class="groupInfo">
-              <div class="groupTitle">
-                {{ g.tradingsymbol }} • #{{ g.id }}
-              </div>
-
-              <div class="muted">
-                {{ g.thesisTitle || 'No thesis title' }}
-              </div>
-
-              <div class="groupMeta">
-                <span>{{ g.exchange || '—' }}</span>
-                <span>{{ g.strategyTag || '—' }}</span>
-                <span>{{ g.timeframe || '—' }}</span>
-              </div>
-
-              <div class="groupStats">
-                <span>Qty: <span class="mono">{{ g.qty ?? '—' }}</span></span>
-                <span>Avg: <span class="mono">{{ g.avgBuyPrice == null ? '—' : (g.avgBuyPrice | number:'1.2-2') }}</span></span>
-                <span>P/L %: <span class="mono">{{ g.plPct == null ? '—' : (g.plPct | number:'1.2-2') }}</span></span>
-              </div>
-            </div>
-          </label>
-        </div>
-
-        <div class="inlineActions" *ngIf="matchingOpenGroups().length > 0">
-          <button class="btn primary"
-                  (click)="addSelectedTradesToGroup()"
-                  [disabled]="addingToGroup() || !selectedGroupId()">
-            {{ addingToGroup() ? 'Working…' : 'Attach to Selected Group' }}
-          </button>
-        </div>
-      </div>
-
-      <div class="sectionDivider"></div>
-
-      <!-- Create group section -->
-      <div class="sectionBlock">
-        <div class="sectionTitle">Or create a new group</div>
-        <div class="sectionSubtle">The selected trades will be attached after creation.</div>
-
-        <div *ngIf="createError()" class="error">{{ createError() }}</div>
-
-        <div class="row2">
-          <label>
-            <div class="lbl">Symbol *</div>
-            <input class="input"
-                   [ngModel]="form().tradingsymbol"
-                   (ngModelChange)="form.set({ ...form(), tradingsymbol: $event })" />
-          </label>
-
-          <label>
-            <div class="lbl">Exchange *</div>
-            <select class="input"
-                    [ngModel]="form().exchange"
-                    (ngModelChange)="form.set({ ...form(), exchange: $event })">
-              <option value="NSE">NSE</option>
-              <option value="BSE">BSE</option>
-            </select>
-          </label>
-        </div>
-
-        <label>
-          <div class="lbl">Thesis Title</div>
-          <input class="input"
-                 [ngModel]="form().thesisTitle"
-                 (ngModelChange)="form.set({ ...form(), thesisTitle: $event })" />
-        </label>
-
-        <label>
-          <div class="lbl">Thesis Notes</div>
-          <textarea class="input"
-                    rows="5"
-                    [ngModel]="form().thesisNotes"
-                    (ngModelChange)="form.set({ ...form(), thesisNotes: $event })"></textarea>
-        </label>
-
-        <div class="row2">
-          <label>
-            <div class="lbl">Strategy Tag</div>
-            <input class="input"
-                   [ngModel]="form().strategyTag"
-                   (ngModelChange)="form.set({ ...form(), strategyTag: $event })" />
-          </label>
-
-          <label>
-            <div class="lbl">Timeframe</div>
-            <input class="input"
-                   [ngModel]="form().timeframe"
-                   (ngModelChange)="form.set({ ...form(), timeframe: $event })" />
-          </label>
-        </div>
-
-        <div class="inlineActions">
-          <button class="btn primary"
-                  (click)="createGroupAndAttach()"
-                  [disabled]="creating()">
-            {{ creating() ? 'Working…' : 'Create New Group & Attach' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="drawerActions">
-      <button class="btn ghost" (click)="closeAssignDrawer()" [disabled]="creating() || addingToGroup()">
-        Close
-      </button>
-    </div>
   </div>
 </div>

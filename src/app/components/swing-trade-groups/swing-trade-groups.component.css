@@ -151,3 +151,19 @@ td { padding:12px; border-bottom:1px solid #162233; vertical-align:top; }
   outline: 2px solid rgba(255, 255, 255, 0.28);
   outline-offset: -2px;
 }
+
+.table th.active {
+  color: #8ab4ff;
+  border-bottom: 2px solid #8ab4ff;
+  background: rgba(138, 180, 255, 0.08);
+}
+
+.table th .sortMark {
+  margin-left: 6px;
+  font-weight: 700;
+}
+
+.table th.num,
+.table td.num {
+  text-align: right;
+}

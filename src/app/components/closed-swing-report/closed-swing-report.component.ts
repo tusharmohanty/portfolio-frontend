@@ -167,7 +167,7 @@ export class ClosedSwingReportComponent {
       .set('to', this.to());
 
     const res = await this.http
-      .get<ClosedSwingReportSummaryDto>('/api/swing-v2/reports/closed-summary', { params })
+      .get<ClosedSwingReportSummaryDto>('/api/swing/reports/closed-summary', { params })
       .toPromise();
 
     this.summary.set(res ?? {
@@ -189,7 +189,7 @@ export class ClosedSwingReportComponent {
       .set('to', this.to());
 
     const res = await this.http
-      .get<ClosedSwingReportRowDto[]>('/api/swing-v2/reports/closed-trades', { params })
+      .get<ClosedSwingReportRowDto[]>('/api/swing/reports/closed-trades', { params })
       .toPromise();
 
     this.rows.set(res ?? []);
@@ -201,7 +201,7 @@ export class ClosedSwingReportComponent {
       .set('to', this.to());
 
     const res = await this.http
-      .get<ClosedSwingMonthlyBreakdownDto[]>('/api/swing-v2/reports/closed-monthly', { params })
+      .get<ClosedSwingMonthlyBreakdownDto[]>('/api/swing/reports/closed-monthly', { params })
       .toPromise();
 
     this.monthly.set(res ?? []);
